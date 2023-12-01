@@ -14,7 +14,7 @@
 <?import javafx.scene.text.Font?>
 
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="809.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="octavo.cmsc124.lolcode_program.GuiController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="809.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="octavo.cmsc124.lolcode_program.controller.GuiController">
     <children>
         <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <menus>
@@ -70,7 +70,7 @@
                                                                 <Font name="System Bold" size="12.0" />
                                                             </font>
                                                         </Label>
-                                                        <TableView layoutX="19.0" layoutY="65.0" prefHeight="330.4" prefWidth="238.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+                                                        <TableView fx:id="lexemeTable" layoutX="19.0" layoutY="65.0" prefHeight="330.4" prefWidth="238.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
                                                             <columns>
                                                                 <TableColumn fx:id="lexemeColTable" editable="false" prefWidth="120.0" resizable="false" text="Lexeme" />
                                                                 <TableColumn fx:id="classificationColTable" editable="false" prefWidth="120.0" resizable="false" text="Classification" />
@@ -83,7 +83,7 @@
                                                 </AnchorPane>
                                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="335.0" prefWidth="248.0">
                                                     <children>
-                                                        <TableView prefHeight="304.8" prefWidth="236.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+                                                        <TableView fx:id="symbolTable" prefHeight="304.8" prefWidth="236.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
                                                             <columns>
                                                                 <TableColumn fx:id="identifierColTable" maxWidth="1.7976931348623157E308" prefWidth="120.0" text="Identifier" />
                                                                 <TableColumn fx:id="valueColTable" prefWidth="120.0" text="Value" />

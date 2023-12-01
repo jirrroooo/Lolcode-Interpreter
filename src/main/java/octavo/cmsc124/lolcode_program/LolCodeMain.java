@@ -8,13 +8,17 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class LolCodeMain extends Application {
+
+    public static Stage stage;
+
     @Override
-    public void start(Stage stage) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(LolCodeMain.class.getResource("lolcode_gui.fxml"));
+    public void start(Stage primaryStage) throws IOException {
+        stage = primaryStage;
+        FXMLLoader fxmlLoader = new FXMLLoader(LolCodeMain.class.getResource("LolcodeGUI.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 800, 560);
-        stage.setTitle("John Rommel Octavo's Lolcode Interpreter");
-        stage.setScene(scene);
-        stage.show();
+        primaryStage.setTitle("John Rommel Octavo's Lolcode Interpreter");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
