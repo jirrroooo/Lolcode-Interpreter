@@ -13,7 +13,6 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="559.0" prefWidth="809.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="octavo.cmsc124.lolcode_program.controller.GuiController">
     <children>
         <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -72,8 +71,8 @@
                                                         </Label>
                                                         <TableView fx:id="lexemeTable" layoutX="19.0" layoutY="65.0" prefHeight="330.4" prefWidth="238.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
                                                             <columns>
-                                                                <TableColumn fx:id="lexemeColTable" editable="false" prefWidth="120.0" resizable="false" text="Lexeme" />
-                                                                <TableColumn fx:id="classificationColTable" editable="false" prefWidth="120.0" resizable="false" text="Classification" />
+                                                                <TableColumn fx:id="lexemeColTable" editable="false" prefWidth="120.0" text="Lexeme" />
+                                                                <TableColumn fx:id="classificationColTable" editable="false" prefWidth="120.0" text="Classification" />
                                                             </columns>
                                                             <columnResizePolicy>
                                                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

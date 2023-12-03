@@ -9,85 +9,88 @@ import java.util.regex.Pattern;
 
 public class LexicalAnalyzer {
 
-    private Map<String, Token> keywordsAndOperatorsMap;
+    private List<Lexeme> lexemes;
 
     public LexicalAnalyzer() {
-        this.keywordsAndOperatorsMap = new HashMap<>();
-
-//        keywordsAndOperatorsMap.put("for", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("while", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("do", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("if", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("else", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("print", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("switch", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("case", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("default", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("null", Token.KEYWORD);
-//        keywordsAndOperatorsMap.put("+", Token.PLUS);
-//        keywordsAndOperatorsMap.put("-", Token.MINUS);
-//        keywordsAndOperatorsMap.put("*", Token.TIMES);
-//        keywordsAndOperatorsMap.put("/", Token.DIVIDE);
-//        keywordsAndOperatorsMap.put("..", Token.DOTDOT);
-//        keywordsAndOperatorsMap.put(".", Token.DOT);
-//        keywordsAndOperatorsMap.put(",", Token.COMMA);
-//        keywordsAndOperatorsMap.put("=", Token.EQUAL);
-//        keywordsAndOperatorsMap.put(":", Token.COLON);
-//        keywordsAndOperatorsMap.put(";", Token.SEMICOLON);
-//        keywordsAndOperatorsMap.put("(", Token.LEFT_PARENTHESIS);
-//        keywordsAndOperatorsMap.put(")", Token.RIGHT_PARENTHESIS);
-//        keywordsAndOperatorsMap.put(">=", Token.GREATER_OR_EQUALS);
-//        keywordsAndOperatorsMap.put("<=", Token.LOWER_OR_EQUALS);
-//        keywordsAndOperatorsMap.put(">", Token.GREATER_THAN);
-//        keywordsAndOperatorsMap.put("<", Token.LOWER_THAN);
-//        keywordsAndOperatorsMap.put("<>", Token.NOT_EQUALS);
-//        keywordsAndOperatorsMap.put(":=", Token.ASSIGNMENT_OPERATOR);
-//        keywordsAndOperatorsMap.put("@", Token.AT_SIGN);
-//        keywordsAndOperatorsMap.put("{", Token.LEFT_BRACE);
-//        keywordsAndOperatorsMap.put("}", Token.RIGHT_BRACE);
+        this.lexemes = new ArrayList<>();
     }
 
     public List<Lexeme> analyzeCode(Map<Integer,String> lines) {
 
-        List<Lexeme> lexemes = new ArrayList<>();
-
-        lines.forEach( (numLine, line)  ->{
-            Map<String, String> lexLine = analyzeLine(line.strip());
-            lexLine.forEach((token, classification) -> lexemes.add(new Lexeme(token, classification)));
+        lines.forEach( (numLine, line) -> {
+            List<List<String>> lexLine = analyzeLine(line.strip());
+            lexLine.forEach((listOfLexemes) -> {
+                lexemes.add(new Lexeme(listOfLexemes.get(0), LexemeType.valueOf(listOfLexemes.get(1))));
+            });
         });
 
         return lexemes;
     }
 
-    private Map<String, String> analyzeLine(String line) {
+    private List<List<String>> analyzeLine(String line) {
 
-        Map<String, String> lineTokens = new HashMap<>();
-//        Automaton automaton = new Automaton();
-
-//        for (String str : line.split(" ")) {
-//            if (keywordsAndOperatorsMap.containsKey(str.toLowerCase()))
-//                lineTokens.put(str, keywordsAndOperatorsMap.get(str.toLowerCase()));
-//            else
-//                lineTokens.put(str, automaton.evaluate(str));
-//        }
-
-//        return lineTokens;
+        List<List<String>> lineTokens = new ArrayList<>();
 
         // Define regex patterns for keywords, identifiers, numbers, and operators
-        String variableIdentifier = "[a-z|A-Z][a-z|A-Z|0-9|_]*";
+
+        String codeDelimiter = "(HAI|KTHXBYE)";
+
+        String variableDelimiter = "\\bWAZZUP|BUHBYE\\b";
         String variableDeclaration = "\\bI HAS A\\b";
-        String functionIdentifier = "\\b(HOW IZ I)\\b | \\b(IF U SAY SO)\\b";
-        String loopIdentifier = "\\b(IM IN YR)\\b | \\b(IM OUTTA YR)\\b";
-        String numbrLiteral = "(?:-)?\\d+[^.]";
-        String numbarLiteral = "(?:-)?\\d+\\.\\d+";
+        String variableAssignment = "ITZ";
+        String variableIdentifier = "[a-z|A-Z][a-z|A-Z|0-9|_]*";
+
+        String numbrLiteral = "\\S(?:\\-)?\\d+[^.]\\S";
+        String numbarLiteral = "\\S(?:\\-)?\\d+\\.\\d+\\S";
         String yarnLiteral = "\\\"(.*)\\\"";
-        String stringDelimeter = "\"";
-        String codeDelimeter = "(HAI|KTHXBYE)";
+        String troofLiteral = "\\bWIN|FAIL\\b";
+        String literal = "(" + numbarLiteral + "|" + numbrLiteral + "|" + yarnLiteral + "|" + troofLiteral + ")";
         String outputKeyword = "VISIBLE";
 
+//        String functionDelimiter = "\\bHOW IZ I|IF U SAY SO\\b";
+        String functionDelimiter = "\\bIF U SAY SO\\b";
+        String functionIdentifier = "HOW IZ I [a-z|A-Z][a-z|A-Z|0-9|_]*";
+        String functionParameter = "\\bYR [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
+
+        String returnKeyword = "\\bFOUND YR\\b";
+
+        String loopDelimiter = "\\bIM OUTTA YR\\b";
+        String loopIdentifier = "\\bIM IN YR [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
+        String loopOperation = "\\bUPPIN|NERFIN\\b";
+        String loopCondition = "\\bTIL|WILE\\b";
+
+        String arithmeticOperation = "\\bSUM OF|DIFF OF|PRODUKT OF|QUOSHUNT OF|MOD OF|BIGGR OF|SMALLR OF\\b";
+        String booleanOperation = "\\bBOTH OF|EITHER OF|WON OF|NOT|ALL OF|ANY OF\\b";
+        String comparisonOperation = "\\bBOTH SAEM|DIFFRINT\\b";
+
+        String operandSeparator = "\\bAN\\b";
+        String printingSeparator = "\\+";
+        String conditionDelimiter = "\\bMKAY\\b";
+
+        String inputKeyword = "\\bGIMMEH\\b";
+        String concatenationKeyword = "\\bSMOOSH\\b";
+        String typecastOperator = "\\bMAEK\\b";
+        String reassignmentKeyword = "\\bR\\b";
+
+        String flowControlDelimiter = "\\bO RLY\\?|OIC|WTF\\?\\b";
+        String flowControlKeyword = "\\bYA RLY|NO WAI|OMG|OMGWTF\\b";
+
+        String breakOrExitOperator = "\\bGTFO\\b";
+
+        String inlineComments = "\\bBTW(.*)\\b";
+
         // Combine patterns into a single pattern
-        String combinedPattern = "(" + numbarLiteral + "|" + numbrLiteral + "|" + outputKeyword + "|" + variableDeclaration  + "|" + functionIdentifier + "|" + loopIdentifier + "|"
-                  + yarnLiteral + "|" + stringDelimeter + "|" + codeDelimeter + "|" +  variableIdentifier + ")";
+        String combinedPattern = "(" + codeDelimiter + "|" + outputKeyword + "|" +  literal
+                + "|" + functionIdentifier + "|" + functionParameter + "|" + loopIdentifier
+                + "|" + functionDelimiter + "|" + variableAssignment + "|" + variableDelimiter + "|" + variableDeclaration
+                + "|" + returnKeyword + "|"  + loopCondition
+                + "|" + arithmeticOperation + "|" + booleanOperation + "|" + printingSeparator + "|" + conditionDelimiter
+                + "|" + inputKeyword + "|" + concatenationKeyword + "|" + typecastOperator + "|" + flowControlDelimiter
+                + "|" + flowControlKeyword + "|" + breakOrExitOperator
+                + "|" + loopDelimiter + "|"  + operandSeparator
+                + "|" + comparisonOperation + "|"  + reassignmentKeyword
+                + "|" + inlineComments
+                + "|" + variableIdentifier + ")";
 
         // Create a Pattern object
         Pattern pattern = Pattern.compile(combinedPattern);
@@ -98,40 +101,126 @@ public class LexicalAnalyzer {
         // Process matches
         while (matcher.find()) {
             String token = matcher.group();
-            if (token.matches(codeDelimeter)) {
-                System.out.println("Code Delimeter: " + token);
-                lineTokens.put(token, "Code Delimeter");
-            } else if (token.matches(variableDeclaration)) {
-                System.out.println("Variable Declaration: " + token);
-                lineTokens.put(token, "Variable Declaration");
-            }else if (token.matches(outputKeyword)) {
-                System.out.println("Output Keyword: " + token);
-                lineTokens.put(token, "Output Keyword");
-            } else if (token.matches(functionIdentifier)) {
-                System.out.println("Function Identifier: " + token);
-                lineTokens.put(token, "Function Identifier");
-            } else if (token.matches(loopIdentifier)) {
-                System.out.println("Loop Identifier: " + token);
-                lineTokens.put(token, "Loop Identifier");
-            } else if (token.matches(numbrLiteral)) {
-                System.out.println("Numbr Literal: " + token);
-                lineTokens.put(token, "Numbr Literal");
-            } else if (token.matches(numbarLiteral)) {
-                System.out.println("Numbar Literal: " + token);
-                lineTokens.put(token, "Numbar Literal");
-            } else if (token.matches(yarnLiteral)) {
-                System.out.println("Yarn Literal: " + token);
-                lineTokens.put("\"", "String Delimeter");
-                lineTokens.put(token.substring(1, token.length() - 1), "Yarn Literal");
-                lineTokens.put("\"", "String Delimeter");
-            } else if (token.matches(stringDelimeter)) {
-                System.out.println("String Delimeter: " + token);
-                lineTokens.put(token, "String Delimeter");
-            } else if (token.matches(variableIdentifier)) {
-                System.out.println("Variable Identifier: " + token);
-                lineTokens.put(token, "Variable Identifier");
-            } else {
-                System.out.println("Unknown: " + token);
+
+            if (token.matches(codeDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.CODE_DELIMITER.toString())));
+            }
+
+            else if (token.matches(variableDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.VARIABLE_DELIMITER.toString())));
+            }
+            else if (token.matches(variableDeclaration)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.VARIABLE_DECLARATION.toString())));
+            }
+            else if (token.matches(variableAssignment)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.VARIABLE_ASSIGNMENT.toString())));
+            }
+
+
+            else if (token.matches(outputKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.OUTPUT_KEYWORD.toString())));
+            }
+
+
+            else if (token.matches(functionDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.FUNCTION_DELIMITER.toString())));
+            }
+            else if (token.matches(functionIdentifier)) {
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0, 8), LexemeType.FUNCTION_DELIMITER.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(9), LexemeType.FUNCTION_IDENTIFIER.toString())));
+            }
+            else if (token.matches(functionParameter)) {
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0, 2), LexemeType.FUNCTION_PARAMETER_KEYWORD.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(3), LexemeType.FUNCTION_PARAMETER.toString())));
+            }
+
+
+            else if (token.matches(returnKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.RETURN_KEYWORD.toString())));
+            }
+
+
+            else if (token.matches(loopDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_DELIMITER.toString())));
+            }
+            else if (token.matches(loopIdentifier)) {
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0,8), LexemeType.LOOP_DELIMITER.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(9), LexemeType.LOOP_IDENTIFIER.toString())));
+            }
+            else if (token.matches(loopOperation)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_OPERATION.toString())));
+            }
+            else if (token.matches(loopCondition)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_IDENTIFIER.toString())));
+            }
+
+
+            else if (token.matches(arithmeticOperation)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.ARITHMETIC_OPERATION.toString())));
+            }
+            else if (token.matches(booleanOperation)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.BOOLEAN_OPERATION.toString())));
+            }
+            else if (token.matches(comparisonOperation)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.BOOLEAN_OPERATION.toString())));
+            }
+
+
+            else if (token.matches(operandSeparator)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.OPERAND_SEPARATOR.toString())));
+            }
+            else if (token.matches(printingSeparator)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.PRINTING_SEPARATOR.toString())));
+            }
+            else if (token.matches(conditionDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.CONDITION_DELIMITER.toString())));
+            }
+
+
+            else if (token.matches(inputKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.INPUT_KEYWORD.toString())));
+            }
+            else if (token.matches(concatenationKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.CONCATENATION_KEYWORD.toString())));
+            }
+            else if (token.matches(typecastOperator)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.TYPECASTING_OPERATOR.toString())));
+            }
+            else if (token.matches(reassignmentKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.REASSIGNMENT_OPERATOR.toString())));
+            }
+
+
+            else if (token.matches(flowControlDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.FLOW_CONTROL_DELIMITER.toString())));
+            }
+            else if (token.matches(flowControlKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.FLOW_CONTROL_KEYWORD.toString())));
+            }
+
+
+            else if (token.matches(breakOrExitOperator)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.BREAK_OR_EXIT_OPERATOR.toString())));
+            }
+
+
+            else if (token.matches(variableIdentifier)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.VARIABLE_IDENTIFIER.toString())));
+            }
+
+            else if (token.matches(literal)) {
+
+                if(token.matches(yarnLiteral)){
+                    lineTokens.add(new ArrayList<>(List.of("\"", LexemeType.STRING_DELIMITER.toString())));
+                    lineTokens.add(new ArrayList<>(List.of(token.substring(1, token.length() - 1), LexemeType.LITERAL.toString())));
+                    lineTokens.add(new ArrayList<>(List.of("\"", LexemeType.STRING_DELIMITER.toString())));
+                }else{
+                    lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LITERAL.toString())));
+                }
+            }
+
+            else {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.UNKNOWN.toString())));
             }
         }
 

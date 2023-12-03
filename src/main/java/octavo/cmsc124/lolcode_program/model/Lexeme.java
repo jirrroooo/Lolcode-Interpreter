@@ -1,17 +1,26 @@
 package octavo.cmsc124.lolcode_program.model;
 
 import javafx.beans.property.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+
 
 public class Lexeme {
     private StringProperty token = new SimpleStringProperty();
-    private StringProperty classification = new SimpleStringProperty();
+    private ObjectProperty<LexemeType> type = new SimpleObjectProperty<>();
 
-    public Lexeme(String token, String classification){
-        setToken(token);
-        setClassification(classification);
+    public Lexeme(String token, LexemeType type){
+        this.token.set(token);
+        this.type.set(type);
     }
+
+    public LexemeType getType() {
+        return type.get();
+    }
+
+    public String getLexeme() {
+        return token.get();
+    }
+
+    // ==================================================================
 
     public String getToken() {
         return token.get();
@@ -26,15 +35,8 @@ public class Lexeme {
     }
 
 
-    public String getClassification() {
-        return classification.get();
+    public LexemeType getClassification() {
+        return type.get();
+    }
     }
 
-    public StringProperty setClassificationProperty() {
-        return classification;
-    }
-
-    public void setClassification(String classification) {
-        this.classification.set(classification);
-    }
-}
