@@ -40,8 +40,8 @@ public class LexicalAnalyzer {
         String variableAssignment = "ITZ";
         String variableIdentifier = "[a-z|A-Z][a-z|A-Z|0-9|_]*";
 
-        String numbrLiteral = "\\S(?:\\-)?\\d+[^.]\\S";
-        String numbarLiteral = "\\S(?:\\-)?\\d+\\.\\d+\\S";
+        String numbrLiteral = "(?:\\-)?\\d+";
+        String numbarLiteral = "(?:\\-)?\\d+\\.\\d+";
         String yarnLiteral = "\\\"(.*)\\\"";
         String troofLiteral = "\\bWIN|FAIL\\b";
         String literal = "(" + numbarLiteral + "|" + numbrLiteral + "|" + yarnLiteral + "|" + troofLiteral + ")";
@@ -50,7 +50,8 @@ public class LexicalAnalyzer {
 //        String functionDelimiter = "\\bHOW IZ I|IF U SAY SO\\b";
         String functionDelimiter = "\\bIF U SAY SO\\b";
         String functionIdentifier = "HOW IZ I [a-z|A-Z][a-z|A-Z|0-9|_]*";
-        String functionParameter = "\\bYR [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
+        String functionCallKeyword = "\\bI IZ [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
+        String functionParameter = "YR [a-z|A-Z][a-z|A-Z|0-9|_]*|YR (?:\\-)?\\d+[^.]|YR (?:\\-)?\\d+\\.\\d+|YR \\\"(.*)\\\"|YR (WIN|FAIL)";
 
         String returnKeyword = "\\bFOUND YR\\b";
 
@@ -69,10 +70,10 @@ public class LexicalAnalyzer {
 
         String inputKeyword = "\\bGIMMEH\\b";
         String concatenationKeyword = "\\bSMOOSH\\b";
-        String typecastOperator = "\\bMAEK\\b";
+        String typecastOperator = "\\bMAEK|IS NOW A\\b";
         String reassignmentKeyword = "\\bR\\b";
 
-        String flowControlDelimiter = "\\bO RLY\\?|OIC|WTF\\?\\b";
+        String flowControlDelimiter = "\\bO RLY\\?|OIC|WTF\\?|MEBBE\\b";
         String flowControlKeyword = "\\bYA RLY|NO WAI|OMG|OMGWTF\\b";
 
         String breakOrExitOperator = "\\bGTFO\\b";
@@ -81,7 +82,7 @@ public class LexicalAnalyzer {
 
         // Combine patterns into a single pattern
         String combinedPattern = "(" + codeDelimiter + "|" + outputKeyword + "|" +  literal
-                + "|" + functionIdentifier + "|" + functionParameter + "|" + loopIdentifier
+                + "|" + functionIdentifier + "|" + functionParameter + "|" + loopIdentifier + "|" + functionCallKeyword
                 + "|" + functionDelimiter + "|" + variableAssignment + "|" + variableDelimiter + "|" + variableDeclaration
                 + "|" + returnKeyword + "|"  + loopCondition
                 + "|" + arithmeticOperation + "|" + booleanOperation + "|" + printingSeparator + "|" + conditionDelimiter
@@ -129,10 +130,15 @@ public class LexicalAnalyzer {
                 lineTokens.add(new ArrayList<>(List.of(token.substring(0, 8), LexemeType.FUNCTION_DELIMITER.toString())));
                 lineTokens.add(new ArrayList<>(List.of(token.substring(9), LexemeType.FUNCTION_IDENTIFIER.toString())));
             }
+            else if (token.matches(functionCallKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0, 4), LexemeType.FUNCTION_CALL_KEYWORD.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(5), LexemeType.FUNCTION_IDENTIFIER.toString())));
+            }
             else if (token.matches(functionParameter)) {
                 lineTokens.add(new ArrayList<>(List.of(token.substring(0, 2), LexemeType.FUNCTION_PARAMETER_KEYWORD.toString())));
                 lineTokens.add(new ArrayList<>(List.of(token.substring(3), LexemeType.FUNCTION_PARAMETER.toString())));
             }
+
 
 
             else if (token.matches(returnKeyword)) {

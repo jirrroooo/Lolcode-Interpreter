@@ -11,6 +11,7 @@ import javafx.stage.FileChooser;
 import octavo.cmsc124.lolcode_program.LolCodeMain;
 import octavo.cmsc124.lolcode_program.model.Lexeme;
 import octavo.cmsc124.lolcode_program.model.LexicalAnalyzer;
+import octavo.cmsc124.lolcode_program.model.SyntaxAnalyzer;
 
 import java.io.File;
 import java.io.IOException;
@@ -85,9 +86,10 @@ public class GuiController implements Initializable {
         List<Lexeme> lexemes = new LexicalAnalyzer().analyzeCode(code);
 
         lexemesObservableList.addAll(lexemes);
-
         lexemeTable.setItems(lexemesObservableList);
 
+        SyntaxAnalyzer syntaxAnalyzer = new SyntaxAnalyzer(lexemes);
+        syntaxAnalyzer.analyze();
 
 
 //        lexemeColTable.setItems(FXCollections.observableList(lexemes));
