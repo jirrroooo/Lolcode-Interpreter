@@ -122,9 +122,9 @@
                                     </children>
                                 </AnchorPane>
                                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                                    <children>
-                                        <Label fx:id="outputPane" alignment="TOP_LEFT" layoutX="149.0" layoutY="51.0" prefHeight="163.2" prefWidth="806.4" text="Output Pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                    </children>
+                           <children>
+                              <TextArea fx:id="outputPane" prefHeight="163.2" prefWidth="806.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
                                 </AnchorPane>
                             </items>
                         </SplitPane>

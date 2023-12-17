@@ -20,7 +20,7 @@ public class LexicalAnalyzer {
         lines.forEach( (numLine, line) -> {
             List<List<String>> lexLine = analyzeLine(line.strip());
             lexLine.forEach((listOfLexemes) -> {
-                lexemes.add(new Lexeme(listOfLexemes.get(0), LexemeType.valueOf(listOfLexemes.get(1))));
+                lexemes.add(new Lexeme(listOfLexemes.get(0), LexemeType.valueOf(listOfLexemes.get(1)), numLine));
             });
         });
 
@@ -42,12 +42,12 @@ public class LexicalAnalyzer {
 
         String numbrLiteral = "(?:\\-)?\\d+";
         String numbarLiteral = "(?:\\-)?\\d+\\.\\d+";
-        String yarnLiteral = "\\\"(.*)\\\"";
+        String yarnLiteral = "\\\"([^\"]*)\\\"";
         String troofLiteral = "\\bWIN|FAIL\\b";
         String literal = "(" + numbarLiteral + "|" + numbrLiteral + "|" + yarnLiteral + "|" + troofLiteral + ")";
         String outputKeyword = "VISIBLE";
+        String dataTypeKeyword = "\\bNOOB|TROOF|NUMBAR|NUMBR|YARN|WIN|FAIL\\b";
 
-//        String functionDelimiter = "\\bHOW IZ I|IF U SAY SO\\b";
         String functionDelimiter = "\\bIF U SAY SO\\b";
         String functionIdentifier = "HOW IZ I [a-z|A-Z][a-z|A-Z|0-9|_]*";
         String functionCallKeyword = "\\bI IZ [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
@@ -55,10 +55,11 @@ public class LexicalAnalyzer {
 
         String returnKeyword = "\\bFOUND YR\\b";
 
-        String loopDelimiter = "\\bIM OUTTA YR\\b";
+        String loopDelimiter = "\\bIM OUTTA YR [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
         String loopIdentifier = "\\bIM IN YR [a-z|A-Z][a-z|A-Z|0-9|_]*\\b";
         String loopOperation = "\\bUPPIN|NERFIN\\b";
         String loopCondition = "\\bTIL|WILE\\b";
+        String loopKeyword = "\\bYR\\b";
 
         String arithmeticOperation = "\\bSUM OF|DIFF OF|PRODUKT OF|QUOSHUNT OF|MOD OF|BIGGR OF|SMALLR OF\\b";
         String booleanOperation = "\\bBOTH OF|EITHER OF|WON OF|NOT|ALL OF|ANY OF\\b";
@@ -70,24 +71,24 @@ public class LexicalAnalyzer {
 
         String inputKeyword = "\\bGIMMEH\\b";
         String concatenationKeyword = "\\bSMOOSH\\b";
-        String typecastOperator = "\\bMAEK|IS NOW A\\b";
+        String typecastOperator = "\\bMAEK|IS NOW A|A\\b";
         String reassignmentKeyword = "\\bR\\b";
 
-        String flowControlDelimiter = "\\bO RLY\\?|OIC|WTF\\?|MEBBE\\b";
-        String flowControlKeyword = "\\bYA RLY|NO WAI|OMG|OMGWTF\\b";
+        String flowControlDelimiter = "\\bO RLY\\?|WTF\\?|OIC\\b";
+        String flowControlKeyword = "\\bYA RLY|NO WAI|OMG|OMGWTF|MEBBE\\b";
 
         String breakOrExitOperator = "\\bGTFO\\b";
 
         String inlineComments = "\\bBTW(.*)\\b";
 
         // Combine patterns into a single pattern
-        String combinedPattern = "(" + codeDelimiter + "|" + outputKeyword + "|" +  literal
+        String combinedPattern = "(" + codeDelimiter + "|" + loopKeyword + "|" + outputKeyword + "|" +  literal
                 + "|" + functionIdentifier + "|" + functionParameter + "|" + loopIdentifier + "|" + functionCallKeyword
                 + "|" + functionDelimiter + "|" + variableAssignment + "|" + variableDelimiter + "|" + variableDeclaration
-                + "|" + returnKeyword + "|"  + loopCondition
+                + "|" + returnKeyword + "|" + loopCondition
                 + "|" + arithmeticOperation + "|" + booleanOperation + "|" + printingSeparator + "|" + conditionDelimiter
                 + "|" + inputKeyword + "|" + concatenationKeyword + "|" + typecastOperator + "|" + flowControlDelimiter
-                + "|" + flowControlKeyword + "|" + breakOrExitOperator
+                + "|" + flowControlKeyword + "|" + breakOrExitOperator + "|" + dataTypeKeyword
                 + "|" + loopDelimiter + "|"  + operandSeparator
                 + "|" + comparisonOperation + "|"  + reassignmentKeyword
                 + "|" + inlineComments
@@ -123,6 +124,25 @@ public class LexicalAnalyzer {
             }
 
 
+            else if (token.matches(loopDelimiter)) {
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0,11), LexemeType.LOOP_DELIMITER.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(12), LexemeType.LOOP_IDENTIFIER.toString())));
+            }
+            else if (token.matches(loopIdentifier)) {
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0,8), LexemeType.LOOP_DELIMITER.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(9), LexemeType.LOOP_IDENTIFIER.toString())));
+            }
+            else if (token.matches(loopOperation)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_OPERATION.toString())));
+            }
+            else if (token.matches(loopCondition)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_CONDITION.toString())));
+            }
+            else if (token.matches(loopKeyword)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_OR_FUNCTION_KEYWORD.toString())));
+            }
+
+
             else if (token.matches(functionDelimiter)) {
                 lineTokens.add(new ArrayList<>(List.of(token, LexemeType.FUNCTION_DELIMITER.toString())));
             }
@@ -135,8 +155,8 @@ public class LexicalAnalyzer {
                 lineTokens.add(new ArrayList<>(List.of(token.substring(5), LexemeType.FUNCTION_IDENTIFIER.toString())));
             }
             else if (token.matches(functionParameter)) {
-                lineTokens.add(new ArrayList<>(List.of(token.substring(0, 2), LexemeType.FUNCTION_PARAMETER_KEYWORD.toString())));
-                lineTokens.add(new ArrayList<>(List.of(token.substring(3), LexemeType.FUNCTION_PARAMETER.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(0, 2), LexemeType.LOOP_OR_FUNCTION_KEYWORD.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token.substring(3), LexemeType.VARIABLE_IDENTIFIER.toString())));
             }
 
 
@@ -144,21 +164,10 @@ public class LexicalAnalyzer {
             else if (token.matches(returnKeyword)) {
                 lineTokens.add(new ArrayList<>(List.of(token, LexemeType.RETURN_KEYWORD.toString())));
             }
+            else if (token.matches(dataTypeKeyword)){
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.DATA_TYPE_KEYWORD.toString())));
+            }
 
-
-            else if (token.matches(loopDelimiter)) {
-                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_DELIMITER.toString())));
-            }
-            else if (token.matches(loopIdentifier)) {
-                lineTokens.add(new ArrayList<>(List.of(token.substring(0,8), LexemeType.LOOP_DELIMITER.toString())));
-                lineTokens.add(new ArrayList<>(List.of(token.substring(9), LexemeType.LOOP_IDENTIFIER.toString())));
-            }
-            else if (token.matches(loopOperation)) {
-                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_OPERATION.toString())));
-            }
-            else if (token.matches(loopCondition)) {
-                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LOOP_IDENTIFIER.toString())));
-            }
 
 
             else if (token.matches(arithmeticOperation)) {
@@ -168,7 +177,7 @@ public class LexicalAnalyzer {
                 lineTokens.add(new ArrayList<>(List.of(token, LexemeType.BOOLEAN_OPERATION.toString())));
             }
             else if (token.matches(comparisonOperation)) {
-                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.BOOLEAN_OPERATION.toString())));
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.COMPARISON_OPERATION.toString())));
             }
 
 
