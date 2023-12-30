@@ -9,9 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import octavo.cmsc124.lolcode_program.LolCodeMain;
-import octavo.cmsc124.lolcode_program.model.Lexeme;
-import octavo.cmsc124.lolcode_program.model.LexicalAnalyzer;
-import octavo.cmsc124.lolcode_program.model.SyntaxAnalyzer;
+import octavo.cmsc124.lolcode_program.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,21 +48,35 @@ public class GuiController implements Initializable {
     @FXML
     public TableView<Lexeme> lexemeTable;
     @FXML
-    private TableView<?> symbolTable;
+    private TableView<Variable> symbolTable;
     @FXML
     private TableColumn<Lexeme, String> lexemeColTable;
     @FXML
     private TableColumn<Lexeme, String> classificationColTable;
+    @FXML
+    private TableColumn<Variable, String> identifierColTable;
+    @FXML
+    private TableColumn<Variable, Object> valueColTable;
 
     @FXML
     private ObservableList<Lexeme> lexemesObservableList = FXCollections.observableArrayList();
+
+    private ObservableList<Variable> variableObservableList = FXCollections.observableArrayList();
+    public static ObservableList<Variable> staticVariableObservableList = FXCollections.observableArrayList();
+
+    private Map<String, Object> variableTable;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         lexemeColTable.setCellValueFactory(new PropertyValueFactory<Lexeme, String>("lexeme"));
         classificationColTable.setCellValueFactory(new PropertyValueFactory<Lexeme, String>("typeStr"));
 
+        identifierColTable.setCellValueFactory(new PropertyValueFactory<Variable, String>("varName"));
+        valueColTable.setCellValueFactory(new PropertyValueFactory<Variable, Object>("varValue"));
+
         staticOutputPane = outputPane;
+//        staticVariableObservableList = variableObservableList;
+//        symbolTable.setItems(variableObservableList);
 
         executeBtn.disableProperty().bind(codeEditor.textProperty().isEmpty());
     }
@@ -77,6 +89,7 @@ public class GuiController implements Initializable {
     @FXML
     void onExecuteCode(ActionEvent event) {
         lexemeTable.getItems().clear();
+        symbolTable.getItems().clear();
         outputPane.clear();
 
 
@@ -107,6 +120,19 @@ public class GuiController implements Initializable {
             syntaxAnalyzer.join();
         } catch (InterruptedException e) {
             hasSyntaxError = true;
+        }
+
+        if(!hasSyntaxError){
+            SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(lexemes);
+            semanticAnalyzer.start();
+
+            try {
+                // Using join to wait for thread1 to finish
+                semanticAnalyzer.join();
+                symbolTable.setItems(staticVariableObservableList);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
     }

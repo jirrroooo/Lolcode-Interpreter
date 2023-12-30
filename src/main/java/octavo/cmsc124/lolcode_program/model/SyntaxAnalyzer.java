@@ -1,11 +1,6 @@
 package octavo.cmsc124.lolcode_program.model;
-
-import javafx.application.Platform;
-import javafx.fxml.FXML;
-import javafx.scene.control.TextArea;
 import octavo.cmsc124.lolcode_program.controller.GuiController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,6 +12,14 @@ public class SyntaxAnalyzer extends Thread{
     public SyntaxAnalyzer(List<Lexeme> lexemes) {
         this.lexemes = lexemes;
         this.currentLexemeIndex = 0;
+    }
+
+    public int getCurrentLexemeIndex(){
+        return this.currentLexemeIndex;
+    }
+
+    public List<Lexeme> getLexemes(){
+        return this.lexemes;
     }
 
     public void run(){
@@ -43,15 +46,7 @@ public class SyntaxAnalyzer extends Thread{
     private void statement() throws SyntaxErrorException {
             if(match(LexemeType.CODE_DELIMITER) && !(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "KTHXBYE"))){
 
-                if(match(LexemeType.CODE_DELIMITER)){
-                    consume(LexemeType.CODE_DELIMITER);
-                }else{
-                    throw new SyntaxErrorException("Syntax Error at Line 1: Code Delimiter Expected.");
-                }
-
-                if(Thread.currentThread().isInterrupted()){
-                    return;
-                }
+                consume(LexemeType.CODE_DELIMITER);
 
                 while(currentLexemeIndex != lexemes.size()-1 && !match(LexemeType.CODE_DELIMITER)){
                     if(Thread.currentThread().isInterrupted()){
@@ -91,11 +86,11 @@ public class SyntaxAnalyzer extends Thread{
                                 "Unexpected " +
                                 (currentLexemeIndex < lexemes.size() ? lexemes.get(currentLexemeIndex).getTypeStr() : "end of input");
 
-                        GuiController.staticOutputPane.appendText(errorMessage + "\n");
+//                        GuiController.staticOutputPane.appendText(errorMessage + "\n");
 
                         throw new SyntaxErrorException(errorMessage);
                     }
-                    System.out.println("Lexeme: " + lexemes.get(currentLexemeIndex).getLexeme().toString());
+//                    System.out.println("Lexeme: " + lexemes.get(currentLexemeIndex).getLexeme().toString());
                 }
             }else {
                 consume(LexemeType.CODE_DELIMITER);
@@ -269,8 +264,10 @@ public class SyntaxAnalyzer extends Thread{
 
                 if(match(LexemeType.STRING_DELIMITER)){
                     consumeString();
-                }else{
+                }else if(match(LexemeType.LITERAL) || match(LexemeType.VARIABLE_IDENTIFIER)){
                     consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                }else{
+                    expression(LexemeType.OUTPUT_KEYWORD);
                 }
             }
         }
@@ -440,11 +437,20 @@ public class SyntaxAnalyzer extends Thread{
 
     private void concatenationOperation() throws SyntaxErrorException {
         consume(LexemeType.CONCATENATION_KEYWORD);
-        consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+
+        if(match(LexemeType.STRING_DELIMITER)){
+            consumeString();
+        }else{
+            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+        }
 
         while(match(LexemeType.OPERAND_SEPARATOR)){
             consume(LexemeType.OPERAND_SEPARATOR);
-            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            if(match(LexemeType.STRING_DELIMITER)){
+                consumeString();
+            }else{
+                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            }
         }
     }
 
@@ -484,7 +490,7 @@ public class SyntaxAnalyzer extends Thread{
                     "Expected " + expectedType.toString().toLowerCase().replace("_", " ") + ", but found " +
                     (currentLexemeIndex < lexemes.size() ? lexemes.get(currentLexemeIndex).getStringType(): "end of input") + "." ;
 
-            GuiController.staticOutputPane.appendText(errorMessage + "\n");
+//            GuiController.staticOutputPane.appendText(errorMessage + "\n");
 
             throw new SyntaxErrorException(errorMessage);
         }
@@ -502,13 +508,13 @@ public class SyntaxAnalyzer extends Thread{
                     (currentLexemeIndex < lexemes.size() ? lexemes.get(currentLexemeIndex).getType().toString()
                             + " Lexeme: " + lexemes.get(currentLexemeIndex).getLexeme() : "end of input"));
 
-            String errorMessage = "Syntax Error in Line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
+            String errorMessage = "Syntax Error at Line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
                     "Expected " + expectedType1.toString().toLowerCase().replace("_", " ") +
                     " or " + expectedType2.toString().toLowerCase().replace("_", " ") +
                     ", but found " +
                     (currentLexemeIndex < lexemes.size() ? lexemes.get(currentLexemeIndex).getStringType(): "end of input") + "." ;
 
-            GuiController.staticOutputPane.appendText(errorMessage + "\n");
+//            GuiController.staticOutputPane.appendText(errorMessage + "\n");
 
             throw new SyntaxErrorException(errorMessage);
         }
@@ -519,6 +525,8 @@ public class SyntaxAnalyzer extends Thread{
     private static class SyntaxErrorException extends Exception {
         public SyntaxErrorException(String message) {
             super(message);
+            GuiController.staticOutputPane.clear();
+            GuiController.staticOutputPane.appendText(message + "\n");
         }
     }
 
