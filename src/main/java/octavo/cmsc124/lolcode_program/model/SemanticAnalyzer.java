@@ -148,7 +148,12 @@ public class SemanticAnalyzer extends Thread {
             }
             consume(LexemeType.LITERAL);
         } else if (match(LexemeType.STRING_DELIMITER)) {
-            varTable.replace("IT", lexemes.get(currentLexemeIndex + 1).getLexeme());
+            // Checks if string is empty
+            if(lexemes.get(currentLexemeIndex + 1).getType() == LexemeType.STRING_DELIMITER){
+                varTable.replace("IT", "");
+            }else{
+                varTable.replace("IT", lexemes.get(currentLexemeIndex + 1).getLexeme());
+            }
             consumeString();
         } else if (match(LexemeType.VARIABLE_IDENTIFIER)) {
             if (varTable.containsKey(lexemes.get(currentLexemeIndex).getLexeme())) {
@@ -313,7 +318,12 @@ public class SemanticAnalyzer extends Thread {
 
                 // If the initialized value is a string
                 if (match(LexemeType.STRING_DELIMITER)) {
-                    String temp = lexemes.get(currentLexemeIndex + 1).getLexeme();
+                    String temp = "";
+
+                    // Check if the string is empty
+                    if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                        temp = lexemes.get(currentLexemeIndex + 1).getLexeme();
+                    }
 
                     varTable.replace(varName, temp);
 
@@ -447,8 +457,19 @@ public class SemanticAnalyzer extends Thread {
 
                 break;
             case "TROOF":
-                throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
-                        ": " + tempVar2 + " value cannot be casted to type TROOF");
+                try{
+                    if(Objects.equals(varTable.get(tempVar).toString(), "") ||
+                            Objects.equals(varTable.get(tempVar).toString(), "0")
+                    ){
+
+                        varTable.replace(tempVar, DataType.FAIL);
+                    }else{
+                        varTable.replace(tempVar, DataType.WIN);
+                    }
+                }catch(NumberFormatException e){
+                    throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                            ": " + tempVar2 + " value cannot be casted to type TROOF");
+                }
         }
     }
 
@@ -665,7 +686,10 @@ public class SemanticAnalyzer extends Thread {
         consume(LexemeType.OUTPUT_KEYWORD);
 
         if (match(LexemeType.STRING_DELIMITER)) {
-            tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+            if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+            }
+
             consumeString();
         } else {
             expression(LexemeType.OUTPUT_KEYWORD);
@@ -676,7 +700,10 @@ public class SemanticAnalyzer extends Thread {
             consume(LexemeType.PRINTING_SEPARATOR);
 
             if (match(LexemeType.STRING_DELIMITER)) {
-                tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+                if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                    tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+                }
+
                 consumeString();
             } else {
                 expression(LexemeType.OUTPUT_KEYWORD);
@@ -689,7 +716,12 @@ public class SemanticAnalyzer extends Thread {
 
     private void consumeString() throws SemanticErrorException {
         consume(LexemeType.STRING_DELIMITER);
-        consume(LexemeType.LITERAL);
+
+        // Checks if the string is empty
+        if(match(LexemeType.LITERAL)){
+            consume(LexemeType.LITERAL);
+        }
+
         consume(LexemeType.STRING_DELIMITER);
     }
 
@@ -697,7 +729,10 @@ public class SemanticAnalyzer extends Thread {
         consume(LexemeType.CONCATENATION_KEYWORD);
 
         if (match(LexemeType.STRING_DELIMITER)) {
-            tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+            if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+            }
+
             consumeString();
         } else {
             expression(LexemeType.CONCATENATION_KEYWORD);
@@ -708,7 +743,10 @@ public class SemanticAnalyzer extends Thread {
             consume(LexemeType.OPERAND_SEPARATOR);
 
             if (match(LexemeType.STRING_DELIMITER)) {
-                tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+                if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                    tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+                }
+
                 consumeString();
             } else {
                 expression(LexemeType.CONCATENATION_KEYWORD);

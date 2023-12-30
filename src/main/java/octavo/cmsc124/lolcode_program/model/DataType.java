@@ -5,5 +5,7 @@ public enum DataType {
     NUMBAR,
     NUMBR,
     YARN,
-    TROOF
+    TROOF,
+    WIN,
+    FAIL
 }

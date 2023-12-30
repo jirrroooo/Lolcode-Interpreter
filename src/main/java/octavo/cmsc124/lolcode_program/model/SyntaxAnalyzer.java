@@ -431,7 +431,12 @@ public class SyntaxAnalyzer extends Thread{
 
     private void consumeString() throws SyntaxErrorException {
         consume(LexemeType.STRING_DELIMITER);
-        consume(LexemeType.LITERAL);
+
+        // Checks if the string is empty
+        if(match(LexemeType.LITERAL)){
+            consume(LexemeType.LITERAL);
+        }
+
         consume(LexemeType.STRING_DELIMITER);
     }
 

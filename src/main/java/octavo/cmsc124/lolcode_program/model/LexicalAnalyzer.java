@@ -227,7 +227,9 @@ public class LexicalAnalyzer {
 
                 if(token.matches(yarnLiteral)){
                     lineTokens.add(new ArrayList<>(List.of("\"", LexemeType.STRING_DELIMITER.toString())));
-                    lineTokens.add(new ArrayList<>(List.of(token.substring(1, token.length() - 1), LexemeType.LITERAL.toString())));
+                    if(!token.substring(1, token.length() - 1).equals("")){
+                        lineTokens.add(new ArrayList<>(List.of(token.substring(1, token.length() - 1), LexemeType.LITERAL.toString())));
+                    }
                     lineTokens.add(new ArrayList<>(List.of("\"", LexemeType.STRING_DELIMITER.toString())));
                 }else{
                     lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LITERAL.toString())));
