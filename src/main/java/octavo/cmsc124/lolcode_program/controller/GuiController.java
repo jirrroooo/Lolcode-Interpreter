@@ -95,15 +95,6 @@ public class GuiController implements Initializable {
 
         String[] lines = codeEditor.getText().split("\n");
 
-//        String[] tempLines = codeEditor.getText().split("\n");
-//        String[] lines;
-
-//        for(String str: tempLines){
-//            if(str.isBlank()){
-//                lines.
-//            }
-//        }
-
         Map<Integer, String> code = new HashMap<>();
         boolean lock = true; // To ignore multiple lines comments
 
@@ -111,21 +102,23 @@ public class GuiController implements Initializable {
             String line = lines[i];
             if (!line.strip().startsWith("BTW") && lock && !line.strip().startsWith("OBTW") && !line.isBlank()) {
                 code.put(i + 1, line);
-//                System.out.println("line " + (i + 1) + ": " + line);
-//                System.out.println(code);
-
             }
             if (line.strip().startsWith("OBTW"))
                 lock = false;
-            if (line.strip().endsWith("TLDR"))
+            if (line.strip().startsWith("TLDR"))
                 lock = true;
         }
 
-        System.out.println(code);
+//        System.out.println(code);
+
+        List<Map.Entry<Integer, String>> codeList = new ArrayList<>(code.entrySet());
+        codeList.sort(Map.Entry.comparingByKey());
+
+//        System.out.println(codeList);
 
         boolean hasSyntaxError = false;
 
-        List<Lexeme> lexemes = new LexicalAnalyzer().analyzeCode(code);
+        List<Lexeme> lexemes = new LexicalAnalyzer().analyzeCode(codeList);
         lexemesObservableList.addAll(lexemes);
         lexemeTable.setItems(lexemesObservableList);
 

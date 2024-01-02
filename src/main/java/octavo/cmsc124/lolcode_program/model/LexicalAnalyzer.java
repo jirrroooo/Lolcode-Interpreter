@@ -15,12 +15,12 @@ public class LexicalAnalyzer {
         this.lexemes = new ArrayList<>();
     }
 
-    public List<Lexeme> analyzeCode(Map<Integer,String> lines) {
+    public List<Lexeme> analyzeCode(List<Map.Entry<Integer,String>> lines) {
 
-        lines.forEach( (numLine, line) -> {
-            List<List<String>> lexLine = analyzeLine(line.strip());
+        lines.forEach( (line) -> {
+            List<List<String>> lexLine = analyzeLine(line.getValue());
             lexLine.forEach((listOfLexemes) -> {
-                lexemes.add(new Lexeme(listOfLexemes.get(0), LexemeType.valueOf(listOfLexemes.get(1)), numLine));
+                lexemes.add(new Lexeme(listOfLexemes.get(0), LexemeType.valueOf(listOfLexemes.get(1)), line.getKey()));
             });
         });
 
@@ -80,7 +80,7 @@ public class LexicalAnalyzer {
         String breakOrExitOperator = "\\bGTFO\\b";
 
         String inlineComment = "\\bBTW(.*)\\b";
-        String blockComment = "\\bOBTW(.*)TLDR\\b";
+        String blockComment = "OBTW[\\s\\S]*?TLDR";
 
         // Combine patterns into a single pattern
         String combinedPattern = "(" + codeDelimiter + "|" + loopKeyword + "|" + outputKeyword + "|" +  literal
