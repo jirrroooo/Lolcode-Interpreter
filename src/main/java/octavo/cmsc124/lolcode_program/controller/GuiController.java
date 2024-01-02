@@ -94,18 +94,34 @@ public class GuiController implements Initializable {
 
 
         String[] lines = codeEditor.getText().split("\n");
+
+//        String[] tempLines = codeEditor.getText().split("\n");
+//        String[] lines;
+
+//        for(String str: tempLines){
+//            if(str.isBlank()){
+//                lines.
+//            }
+//        }
+
         Map<Integer, String> code = new HashMap<>();
         boolean lock = true; // To ignore multiple lines comments
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (!line.strip().startsWith("BTW") && lock && !line.strip().startsWith("OBTW") && !line.isBlank())
+            if (!line.strip().startsWith("BTW") && lock && !line.strip().startsWith("OBTW") && !line.isBlank()) {
                 code.put(i + 1, line);
+//                System.out.println("line " + (i + 1) + ": " + line);
+//                System.out.println(code);
+
+            }
             if (line.strip().startsWith("OBTW"))
                 lock = false;
             if (line.strip().endsWith("TLDR"))
                 lock = true;
         }
+
+        System.out.println(code);
 
         boolean hasSyntaxError = false;
 
@@ -149,6 +165,7 @@ public class GuiController implements Initializable {
         fileName.setText(file.getName());
 
         if (file != null) {
+            codeEditor.clear();
             Files.lines(file.toPath(), Charset.forName("UTF-8"))
                     .forEach(line -> codeEditor.appendText(line.concat("\n")));
         }

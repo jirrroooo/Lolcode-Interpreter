@@ -329,85 +329,109 @@ public class SyntaxAnalyzer extends Thread{
     }
 
     private void booleanOperation() throws SyntaxErrorException {
-        if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF") ||
-                Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")){
+        // ALL OF and ANY OF
+        if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF") ||
+                Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
 
             consume(LexemeType.BOOLEAN_OPERATION);
 
-            if (match(LexemeType.BOOLEAN_OPERATION)) {
+            if (match(LexemeType.BOOLEAN_OPERATION) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF")
+                    && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
                 booleanOperation();
-                while(match(LexemeType.OPERAND_SEPARATOR)){
+                while (match(LexemeType.OPERAND_SEPARATOR)) {
                     consume(LexemeType.OPERAND_SEPARATOR);
-                    if(match(LexemeType.STRING_DELIMITER)){
-                        consumeString();
-                    }else{
-                        consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-                    }
-                }
-            }else {
-                if(match(LexemeType.STRING_DELIMITER)){
-                    consumeString();
-                }else{
-                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-                }
-                while(match(LexemeType.OPERAND_SEPARATOR)) {
-                    consume(LexemeType.OPERAND_SEPARATOR);
-                    if (match(LexemeType.BOOLEAN_OPERATION)) {
+
+                    if (match(LexemeType.BOOLEAN_OPERATION) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF")
+                            && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
                         booleanOperation();
-                    } else {
-                        if(match(LexemeType.STRING_DELIMITER)){
+                    }else {
+                        if (match(LexemeType.STRING_DELIMITER)) {
                             consumeString();
-                        }else{
+                        } else {
                             consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                         }
                     }
                 }
-                consume(LexemeType.CONDITION_DELIMITER);
+            } else {
+                if (match(LexemeType.STRING_DELIMITER)) {
+                    consumeString();
+                } else {
+                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                }
+                while (match(LexemeType.OPERAND_SEPARATOR)) {
+                    consume(LexemeType.OPERAND_SEPARATOR);
+                    if (match(LexemeType.BOOLEAN_OPERATION) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF")
+                            && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
+                        booleanOperation();
+                    } else {
+                        if (match(LexemeType.STRING_DELIMITER)) {
+                            consumeString();
+                        } else {
+                            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                        }
+                    }
+                }
             }
+            consume(LexemeType.CONDITION_DELIMITER);
 
-        }else if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NOT")){
+        }
+
+        // NOT
+        else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NOT")) {
+
             consume(LexemeType.BOOLEAN_OPERATION);
 
             if (match(LexemeType.BOOLEAN_OPERATION)) {
                 booleanOperation();
             } else {
-                if(match(LexemeType.STRING_DELIMITER)){
+                if (match(LexemeType.STRING_DELIMITER)) {
                     consumeString();
-                }else{
+                } else {
                     consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                 }
             }
         }
+
+        // BOTH OF | EITHER OF | WON OF
         else {
             consume(LexemeType.BOOLEAN_OPERATION);
 
             if (match(LexemeType.BOOLEAN_OPERATION)) {
                 booleanOperation();
                 consume(LexemeType.OPERAND_SEPARATOR);
-                if(match(LexemeType.STRING_DELIMITER)){
+                if (match(LexemeType.STRING_DELIMITER)) {
                     consumeString();
-                }else{
+                } else if (match(LexemeType.BOOLEAN_OPERATION)) {
+                    booleanOperation();
+                } else {
                     consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                 }
             } else {
-                if(match(LexemeType.STRING_DELIMITER)){
+                if (match(LexemeType.STRING_DELIMITER)) {
                     consumeString();
-                }else{
+                } else if (match(LexemeType.BOOLEAN_OPERATION)) {
+                    booleanOperation();
+                } else {
                     consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                 }
+
                 consume(LexemeType.OPERAND_SEPARATOR);
+
                 if (match(LexemeType.BOOLEAN_OPERATION)) {
                     booleanOperation();
                 } else {
-                    if(match(LexemeType.STRING_DELIMITER)){
+                    if (match(LexemeType.STRING_DELIMITER)) {
                         consumeString();
-                    }else{
+                    } else if (match(LexemeType.BOOLEAN_OPERATION)) {
+                        booleanOperation();
+                    } else {
                         consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                     }
                 }
             }
         }
     }
+
 
     private void outputStatement() throws SyntaxErrorException {
         consume(LexemeType.OUTPUT_KEYWORD);
@@ -436,7 +460,6 @@ public class SyntaxAnalyzer extends Thread{
         if(match(LexemeType.LITERAL)){
             consume(LexemeType.LITERAL);
         }
-
         consume(LexemeType.STRING_DELIMITER);
     }
 

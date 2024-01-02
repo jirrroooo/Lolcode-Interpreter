@@ -11,6 +11,7 @@ public class SemanticAnalyzer extends Thread {
     public ArrayList<Variable> variableList;
     private Map<String, Object> varTable;
     private String tempOutputString = "";
+    private ArrayList<java.lang.Boolean> troofList = new ArrayList<java.lang.Boolean>();
 
     public SemanticAnalyzer(List<Lexeme> lexemes) {
         this.lexemes = lexemes;
@@ -149,9 +150,9 @@ public class SemanticAnalyzer extends Thread {
             consume(LexemeType.LITERAL);
         } else if (match(LexemeType.STRING_DELIMITER)) {
             // Checks if string is empty
-            if(lexemes.get(currentLexemeIndex + 1).getType() == LexemeType.STRING_DELIMITER){
+            if (lexemes.get(currentLexemeIndex + 1).getType() == LexemeType.STRING_DELIMITER) {
                 varTable.replace("IT", "");
-            }else{
+            } else {
                 varTable.replace("IT", lexemes.get(currentLexemeIndex + 1).getLexeme());
             }
             consumeString();
@@ -321,7 +322,7 @@ public class SemanticAnalyzer extends Thread {
                     String temp = "";
 
                     // Check if the string is empty
-                    if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                    if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
                         temp = lexemes.get(currentLexemeIndex + 1).getLexeme();
                     }
 
@@ -389,7 +390,7 @@ public class SemanticAnalyzer extends Thread {
                             + ": " + tempVar2 + " is not defined.");
                 }
 
-                cast(tempVar, tempVar2, tempDataType);
+                cast(tempVar, tempVar2, tempDataType, false);
 
                 consume(LexemeType.VARIABLE_IDENTIFIER);
                 consume(LexemeType.DATA_TYPE_KEYWORD);
@@ -402,75 +403,136 @@ public class SemanticAnalyzer extends Thread {
 
             String tempDataType = lexemes.get(currentLexemeIndex).getLexeme();
 
-            cast(tempVar, "", tempDataType);
+            cast(tempVar, "", tempDataType, false);
 
             consume(LexemeType.DATA_TYPE_KEYWORD);
         }
     }
 
-    private void cast(String tempVar, String tempVar2, String tempDataType) throws SemanticErrorException{
+    private void cast(String tempVar, String tempVar2, String tempDataType, boolean isExplicit) throws SemanticErrorException {
 
         switch (tempDataType) {
             case "NOOB":
-                try{
-                    varTable.replace(tempVar, DataType.NOOB);
-                }catch(NumberFormatException e){
+                try {
+                    if (!isExplicit) {
+                        varTable.replace(tempVar, DataType.NOOB);
+                    } else {
+                        varTable.replace("IT", DataType.NOOB);
+                    }
+                } catch (NumberFormatException e) {
                     throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                             ": " + tempVar2 + " value cannot be casted to type NOOB");
                 }
                 break;
             case "YARN":
-                try{
-                    if(Objects.equals(tempVar2, "")){
+                try {
+                    if (Objects.equals(tempVar2, "") && !isExplicit) {
                         varTable.replace(tempVar, varTable.get(tempVar).toString());
-                    }else{
+                    } else if (!Objects.equals(tempVar2, "") && !isExplicit) {
                         varTable.replace(tempVar, varTable.get(tempVar2).toString());
+                    } else if (isExplicit) {
+                        if (varTable.containsKey(tempVar)) {
+                            varTable.replace("IT", varTable.get(tempVar).toString());
+                        } else {
+                            varTable.replace("IT", tempVar);
+                        }
                     }
-                }catch(NumberFormatException e){
+                } catch (NumberFormatException e) {
                     throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                             ": " + tempVar2 + " value cannot be casted to type YARN");
                 }
                 break;
             case "NUMBAR":
-                try{
-                    if(Objects.equals(tempVar2, "")){
+                try {
+                    if (Objects.equals(tempVar2, "") && !isExplicit) {
                         varTable.replace(tempVar, Float.parseFloat(varTable.get(tempVar).toString()));
-                    }else{
+                    } else if (!Objects.equals(tempVar2, "") && !isExplicit) {
                         varTable.replace(tempVar, Float.parseFloat(varTable.get(tempVar2).toString()));
+                    } else if (isExplicit) {
+                        if (varTable.containsKey(tempVar)) {
+                            varTable.replace("IT", Float.parseFloat(varTable.get(tempVar).toString()));
+                        } else {
+                            varTable.replace("IT", Float.parseFloat(tempVar));
+                        }
                     }
-                }catch(NumberFormatException e){
+                } catch (NumberFormatException e) {
                     throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                             ": " + tempVar2 + " value cannot be casted to type NUMBAR");
                 }
                 break;
             case "NUMBR":
-                try{
-                    if(Objects.equals(tempVar2, "")){
+                try {
+                    if (Objects.equals(tempVar2, "")) {
                         varTable.replace(tempVar, (int) Float.parseFloat(varTable.get(tempVar).toString()));
-                    }else{
+                    } else if (!Objects.equals(tempVar2, "") && !isExplicit) {
                         varTable.replace(tempVar, (int) Float.parseFloat(varTable.get(tempVar2).toString()));
+                    } else if (isExplicit) {
+                        if (varTable.containsKey(tempVar)) {
+                            varTable.replace("IT", (int) Float.parseFloat(varTable.get(tempVar).toString()));
+                        } else {
+                            varTable.replace("IT", (int) Float.parseFloat(tempVar));
+                        }
                     }
-                }catch(NumberFormatException e){
+                } catch (NumberFormatException e) {
                     throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                             ": " + tempVar2 + " value cannot be casted to type NUMBR");
                 }
 
                 break;
             case "TROOF":
-                try{
-                    if(Objects.equals(varTable.get(tempVar).toString(), "") ||
-                            Objects.equals(varTable.get(tempVar).toString(), "0")
-                    ){
-
-                        varTable.replace(tempVar, DataType.FAIL);
-                    }else{
-                        varTable.replace(tempVar, DataType.WIN);
+                try {
+                    if (varTable.containsKey(tempVar)) {
+                        if (!isExplicit && (Objects.equals(varTable.get(tempVar).toString(), "") ||
+                                Objects.equals(varTable.get(tempVar).toString(), "0") ||
+                                Objects.equals(varTable.get(tempVar).toString(), "FAIL"))
+                        ) {
+                            varTable.replace(tempVar, DataType.FAIL);
+                        } else if (!isExplicit) {
+                            varTable.replace(tempVar, DataType.WIN);
+                        } else if ((
+                                Objects.equals(varTable.get(tempVar).toString(), "") ||
+                                        Objects.equals(varTable.get(tempVar).toString(), "0")
+                        )) {
+                            varTable.replace("IT", DataType.FAIL);
+                        } else {
+                            varTable.replace("IT", DataType.WIN);
+                        }
+                    } else { // Ensure that error would not occur
+                        if ((
+                                Objects.equals(tempVar, "") || Objects.equals(tempVar, "0") ||
+                                        Objects.equals(tempVar, "FAIL")
+                        )) {
+                            varTable.replace("IT", DataType.FAIL);
+                        } else {
+                            varTable.replace("IT", DataType.WIN);
+                        }
                     }
-                }catch(NumberFormatException e){
+                } catch (NumberFormatException e) {
                     throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                             ": " + tempVar2 + " value cannot be casted to type TROOF");
                 }
         }
+    }
+
+    private void typeCasting() throws SemanticErrorException {
+
+        String literalOrVar = "";
+        String tempDataType = "";
+
+        consume(LexemeType.TYPECASTING_OPERATOR);
+
+        literalOrVar = lexemes.get(currentLexemeIndex).getLexeme();
+
+        consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+
+        if (match(LexemeType.TYPECASTING_OPERATOR)) {   // MAEK x A YARN
+            consume(LexemeType.TYPECASTING_OPERATOR);
+        }
+
+        tempDataType = lexemes.get(currentLexemeIndex).getLexeme();
+        consume(LexemeType.DATA_TYPE_KEYWORD);
+
+        cast(literalOrVar, "", tempDataType, true);
     }
 
     private float arithmeticOperation() throws SemanticErrorException {
@@ -485,40 +547,40 @@ public class SemanticAnalyzer extends Thread {
 
             consume(LexemeType.OPERAND_SEPARATOR);
 
-            if(match(LexemeType.LITERAL)){
-                if(!lexemes.get(currentLexemeIndex).getLexeme().contains(".")){
+            if (match(LexemeType.LITERAL)) {
+                if (!lexemes.get(currentLexemeIndex).getLexeme().contains(".")) {
                     b = Integer.parseInt(lexemes.get(currentLexemeIndex).getLexeme());
-                }else{
+                } else {
                     b = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
                 }
 
                 consume(LexemeType.LITERAL);
             } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
                 b = arithmeticOperation();
-            } else{
-                if(!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
+            } else {
+                if (!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
                     b = Integer.parseInt(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
-                }else{
+                } else {
                     b = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
                 }
 
                 consume(LexemeType.VARIABLE_IDENTIFIER);
             }
         } else {
-            if(match(LexemeType.LITERAL)){
-                if(!lexemes.get(currentLexemeIndex).getLexeme().contains(".")){
+            if (match(LexemeType.LITERAL)) {
+                if (!lexemes.get(currentLexemeIndex).getLexeme().contains(".")) {
                     a = Integer.parseInt(lexemes.get(currentLexemeIndex).getLexeme());
-                }else{
+                } else {
                     a = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
                 }
 
                 consume(LexemeType.LITERAL);
             } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
                 a = arithmeticOperation();
-            } else{
-                if(!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
+            } else {
+                if (!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
                     a = Integer.parseInt(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
-                }else{
+                } else {
                     a = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
                 }
 
@@ -530,18 +592,18 @@ public class SemanticAnalyzer extends Thread {
             if (match(LexemeType.ARITHMETIC_OPERATION)) {
                 b = arithmeticOperation();
             } else {
-                if(match(LexemeType.LITERAL)){
-                    if(!lexemes.get(currentLexemeIndex).getLexeme().contains(".")){
+                if (match(LexemeType.LITERAL)) {
+                    if (!lexemes.get(currentLexemeIndex).getLexeme().contains(".")) {
                         b = Integer.parseInt(lexemes.get(currentLexemeIndex).getLexeme());
-                    }else{
+                    } else {
                         b = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
                     }
 
                     consume(LexemeType.LITERAL);
-                }else{
-                    if(!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
+                } else {
+                    if (!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
                         b = Integer.parseInt(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
-                    }else{
+                    } else {
                         b = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
                     }
 
@@ -550,7 +612,7 @@ public class SemanticAnalyzer extends Thread {
             }
         }
 
-        switch(operation){
+        switch (operation) {
             case "SUM OF":
                 return Arithmetic.sumOf(a, b);
             case "DIFF OF":
@@ -603,81 +665,260 @@ public class SemanticAnalyzer extends Thread {
     }
 
     private void booleanOperation() throws SemanticErrorException {
+        // ALL OF and ANY OF
         if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF") ||
                 Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
 
+            String booleanFunction = lexemes.get(currentLexemeIndex).getLexeme();
+            troofList.clear();
+
             consume(LexemeType.BOOLEAN_OPERATION);
 
-            if (match(LexemeType.BOOLEAN_OPERATION)) {
+            if (match(LexemeType.BOOLEAN_OPERATION) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF")
+                    && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
                 booleanOperation();
+
+                troofList.add(varTable.get("IT") == DataType.WIN);
+
                 while (match(LexemeType.OPERAND_SEPARATOR)) {
+
                     consume(LexemeType.OPERAND_SEPARATOR);
-                    if (match(LexemeType.STRING_DELIMITER)) {
-                        consumeString();
-                    } else {
-                        consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-                    }
-                }
-            } else {
-                if (match(LexemeType.STRING_DELIMITER)) {
-                    consumeString();
-                } else {
-                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-                }
-                while (match(LexemeType.OPERAND_SEPARATOR)) {
-                    consume(LexemeType.OPERAND_SEPARATOR);
-                    if (match(LexemeType.BOOLEAN_OPERATION)) {
+
+                    if (match(LexemeType.BOOLEAN_OPERATION) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF")
+                            && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
                         booleanOperation();
+                        troofList.add(varTable.get("IT") == DataType.WIN);
                     } else {
                         if (match(LexemeType.STRING_DELIMITER)) {
+                            if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                                try {
+                                    cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                                } catch (NullPointerException e) {
+                                    throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                            ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                                }
+                                troofList.add(varTable.get("IT") == DataType.WIN);
+                            }
                             consumeString();
                         } else {
+                            try {
+                                cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                            } catch (NullPointerException e) {
+                                throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                        ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                            }
+                            troofList.add(varTable.get("IT") == DataType.WIN);
                             consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                         }
                     }
                 }
-                consume(LexemeType.CONDITION_DELIMITER);
-            }
-
-        } else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NOT")) {
-            consume(LexemeType.BOOLEAN_OPERATION);
-
-            if (match(LexemeType.BOOLEAN_OPERATION)) {
-                booleanOperation();
             } else {
                 if (match(LexemeType.STRING_DELIMITER)) {
+                    if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                        try {
+                            cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                        } catch (NullPointerException e) {
+                            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                    ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                        }
+                        troofList.add(varTable.get("IT") == DataType.WIN);
+                    }
                     consumeString();
                 } else {
+                    try {
+                        cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                    } catch (NullPointerException e) {
+                        throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                    }
+                    troofList.add(varTable.get("IT") == DataType.WIN);
                     consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                 }
-            }
-        } else {
-            consume(LexemeType.BOOLEAN_OPERATION);
-
-            if (match(LexemeType.BOOLEAN_OPERATION)) {
-                booleanOperation();
-                consume(LexemeType.OPERAND_SEPARATOR);
-                if (match(LexemeType.STRING_DELIMITER)) {
-                    consumeString();
-                } else {
-                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-                }
-            } else {
-                if (match(LexemeType.STRING_DELIMITER)) {
-                    consumeString();
-                } else {
-                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-                }
-                consume(LexemeType.OPERAND_SEPARATOR);
-                if (match(LexemeType.BOOLEAN_OPERATION)) {
-                    booleanOperation();
-                } else {
-                    if (match(LexemeType.STRING_DELIMITER)) {
-                        consumeString();
+                while (match(LexemeType.OPERAND_SEPARATOR)) {
+                    consume(LexemeType.OPERAND_SEPARATOR);
+                    if (match(LexemeType.BOOLEAN_OPERATION) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ALL OF")
+                            && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "ANY OF")) {
+                        booleanOperation();
+                        troofList.add(varTable.get("IT") == DataType.WIN);
                     } else {
-                        consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                        if (match(LexemeType.STRING_DELIMITER)) {
+                            if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                                try {
+                                    cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                                } catch (NullPointerException e) {
+                                    throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                            ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                                }
+                                troofList.add(varTable.get("IT") == DataType.WIN);
+                            }
+                            consumeString();
+                        } else {
+                            try {
+                                cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                            } catch (NullPointerException e) {
+                                throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                        ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                            }
+                            troofList.add(varTable.get("IT") == DataType.WIN);
+                            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                        }
                     }
                 }
+            }
+            consume(LexemeType.CONDITION_DELIMITER);
+
+            switch (booleanFunction){
+                case "ALL OF":
+                    varTable.replace("IT", Boolean.allOf(troofList) ? DataType.WIN : DataType.FAIL);
+                    break;
+                case "ANY OF":
+                    varTable.replace("IT", Boolean.anyOf(troofList) ? DataType.WIN : DataType.FAIL);
+                    break;
+            }
+        }
+
+        // NOT
+        else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NOT")) {
+            // cast(String tempVar, String tempVar2, String tempDataType, boolean isExplicit)
+            consume(LexemeType.BOOLEAN_OPERATION);
+
+            boolean notOperand = false;
+
+            if (match(LexemeType.BOOLEAN_OPERATION)) {
+                booleanOperation();
+                notOperand = varTable.get("IT") == DataType.WIN;
+            } else if (match(LexemeType.STRING_DELIMITER)) {
+                if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                    try {
+                        cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                    } catch (NullPointerException e) {
+                        throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                    }
+                    notOperand = varTable.get("IT") == DataType.WIN;
+                }
+                consumeString();
+            } else {
+//                    String tempVar = lexemes.get(currentLexemeIndex).getLexeme();
+                try {
+                    cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                } catch (NullPointerException e) {
+                    throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                            ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                }
+                notOperand = varTable.get("IT") == DataType.WIN;
+//                System.out.println(varTable.get("IT"));
+                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            }
+
+
+            varTable.replace("IT", Boolean.not(notOperand) ? DataType.WIN : DataType.FAIL);
+        }
+
+        // BOTH OF | EITHER OF | WON OF
+        else {
+            String booleanFunction = lexemes.get(currentLexemeIndex).getLexeme();
+            boolean operand1 = false;
+            boolean operand2 = false;
+
+            consume(LexemeType.BOOLEAN_OPERATION);
+
+            if (match(LexemeType.BOOLEAN_OPERATION)) {
+                booleanOperation();
+                operand1 = varTable.get("IT") == DataType.WIN;
+
+                consume(LexemeType.OPERAND_SEPARATOR);
+
+                if (match(LexemeType.STRING_DELIMITER)) {
+                    if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                        try {
+                            cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                        } catch (NullPointerException e) {
+                            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                    ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                        }
+                        operand2 = varTable.get("IT") == DataType.WIN;
+                    }
+
+                    consumeString();
+                } else if (match(LexemeType.BOOLEAN_OPERATION)) {
+                    booleanOperation();
+                    operand2 = varTable.get("IT") == DataType.WIN;
+                } else {
+                    try {
+                        cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                    } catch (NullPointerException e) {
+                        throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                    }
+
+                    operand2 = varTable.get("IT") == DataType.WIN;
+                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                }
+            } else {
+                if (match(LexemeType.STRING_DELIMITER)) {
+                    if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                        try {
+                            cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                        } catch (NullPointerException e) {
+                            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                    ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                        }
+                        operand1 = varTable.get("IT") == DataType.WIN;
+                    }
+
+                    consumeString();
+                } else {
+                    try {
+                        cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                    } catch (NullPointerException e) {
+                        throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                    }
+
+                    operand1 = varTable.get("IT") == DataType.WIN;
+                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                }
+                consume(LexemeType.OPERAND_SEPARATOR);
+
+                if (match(LexemeType.BOOLEAN_OPERATION)) {
+                    booleanOperation();
+                    operand2 = varTable.get("IT") == DataType.WIN;
+                } else if (match(LexemeType.STRING_DELIMITER)) {
+                    if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
+                        try {
+                            cast(lexemes.get(currentLexemeIndex + 1).getLexeme(), "", DataType.TROOF.toString(), true);
+                        } catch (NullPointerException e) {
+                            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                    ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                        }
+                        operand2 = varTable.get("IT") == DataType.WIN;
+                    }
+                    consumeString();
+                } else {
+                    try {
+                        cast(lexemes.get(currentLexemeIndex).getLexeme(), "", DataType.TROOF.toString(), true);
+                    } catch (NullPointerException e) {
+                        throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                ": " + lexemes.get(currentLexemeIndex).getLexeme() + " cannot be casted");
+                    }
+
+                    operand2 = varTable.get("IT") == DataType.WIN;
+                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                }
+
+            }
+
+            switch (booleanFunction){
+                case "BOTH OF":
+                    varTable.replace("IT", Boolean.bothOF(operand1, operand2) ? DataType.WIN : DataType.FAIL);
+                    break;
+                case "EITHER OF":
+                    varTable.replace("IT", Boolean.eitherOF(operand1, operand2) ? DataType.WIN : DataType.FAIL);
+                    break;
+                case "WON OF":
+                    varTable.replace("IT", Boolean.wonOF(operand1, operand2) ? DataType.WIN : DataType.FAIL);
+                    break;
             }
         }
     }
@@ -686,7 +927,7 @@ public class SemanticAnalyzer extends Thread {
         consume(LexemeType.OUTPUT_KEYWORD);
 
         if (match(LexemeType.STRING_DELIMITER)) {
-            if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+            if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
                 tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
             }
 
@@ -700,7 +941,7 @@ public class SemanticAnalyzer extends Thread {
             consume(LexemeType.PRINTING_SEPARATOR);
 
             if (match(LexemeType.STRING_DELIMITER)) {
-                if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
                     tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
                 }
 
@@ -718,7 +959,7 @@ public class SemanticAnalyzer extends Thread {
         consume(LexemeType.STRING_DELIMITER);
 
         // Checks if the string is empty
-        if(match(LexemeType.LITERAL)){
+        if (match(LexemeType.LITERAL)) {
             consume(LexemeType.LITERAL);
         }
 
@@ -729,7 +970,7 @@ public class SemanticAnalyzer extends Thread {
         consume(LexemeType.CONCATENATION_KEYWORD);
 
         if (match(LexemeType.STRING_DELIMITER)) {
-            if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+            if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
                 tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
             }
 
@@ -743,7 +984,7 @@ public class SemanticAnalyzer extends Thread {
             consume(LexemeType.OPERAND_SEPARATOR);
 
             if (match(LexemeType.STRING_DELIMITER)) {
-                if(lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER){
+                if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
                     tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
                 }
 
@@ -752,18 +993,6 @@ public class SemanticAnalyzer extends Thread {
                 expression(LexemeType.CONCATENATION_KEYWORD);
                 tempOutputString += varTable.get("IT").toString();
             }
-        }
-    }
-
-    private void typeCasting() throws SemanticErrorException {
-        consume(LexemeType.TYPECASTING_OPERATOR);
-        consume(LexemeType.VARIABLE_IDENTIFIER);
-
-        if (match(LexemeType.TYPECASTING_OPERATOR)) {
-            consume(LexemeType.TYPECASTING_OPERATOR);
-            consume(LexemeType.DATA_TYPE_KEYWORD);
-        } else {
-            consume(LexemeType.DATA_TYPE_KEYWORD);
         }
     }
 
