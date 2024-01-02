@@ -48,6 +48,7 @@ public enum LexemeType {
     COMMENT_KEYWORD,
 
     INLINE_COMMENT,
+    BLOCK_COMMENT,
 
     UNKNOWN,
 

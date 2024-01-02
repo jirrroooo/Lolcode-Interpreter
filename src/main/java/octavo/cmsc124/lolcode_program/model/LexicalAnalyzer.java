@@ -79,7 +79,8 @@ public class LexicalAnalyzer {
 
         String breakOrExitOperator = "\\bGTFO\\b";
 
-        String inlineComments = "\\bBTW(.*)\\b";
+        String inlineComment = "\\bBTW(.*)\\b";
+        String blockComment = "\\bOBTW(.*)TLDR\\b";
 
         // Combine patterns into a single pattern
         String combinedPattern = "(" + codeDelimiter + "|" + loopKeyword + "|" + outputKeyword + "|" +  literal
@@ -91,7 +92,7 @@ public class LexicalAnalyzer {
                 + "|" + flowControlKeyword + "|" + breakOrExitOperator + "|" + dataTypeKeyword
                 + "|" + loopDelimiter + "|"  + operandSeparator
                 + "|" + comparisonOperation + "|"  + reassignmentKeyword
-                + "|" + inlineComments
+                + "|" + inlineComment + "|" + blockComment
                 + "|" + variableIdentifier + ")";
 
         // Create a Pattern object
@@ -104,11 +105,19 @@ public class LexicalAnalyzer {
         while (matcher.find()) {
             String token = matcher.group();
 
-            if(token.matches(inlineComments)){
+            if(token.matches(inlineComment)){
                 lineTokens.add(new ArrayList<>(List.of("BTW", LexemeType.COMMENT_KEYWORD.toString())));
                 if(token.strip().length() > 3){
                     lineTokens.add(new ArrayList<>(List.of(token.substring(4), LexemeType.INLINE_COMMENT.toString())));
                 }
+            }
+
+            else if(token.matches(blockComment)){
+                lineTokens.add(new ArrayList<>(List.of("OBTW", LexemeType.COMMENT_KEYWORD.toString())));
+                if(token.strip().length() > 4){
+                    lineTokens.add(new ArrayList<>(List.of(token.substring(5, token.length()-4), LexemeType.BLOCK_COMMENT.toString())));
+                }
+                lineTokens.add(new ArrayList<>(List.of("TLDR", LexemeType.COMMENT_KEYWORD.toString())));
             }
 
             else if (token.matches(codeDelimiter)) {

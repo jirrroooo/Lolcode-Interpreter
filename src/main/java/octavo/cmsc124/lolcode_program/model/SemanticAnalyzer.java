@@ -112,6 +112,11 @@ public class SemanticAnalyzer extends Thread {
 
                     if(match(LexemeType.INLINE_COMMENT)){
                         consume(LexemeType.INLINE_COMMENT);
+                    } else if (match(LexemeType.BLOCK_COMMENT)) {
+                        String errorMessage = "Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
+                                lexemes.get(currentLexemeIndex).getStringType() + " is not allowed as an inline comment";
+
+                        throw new SemanticErrorException(errorMessage);
                     }
                 } else {
                     String errorMessage = "Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
@@ -182,6 +187,11 @@ public class SemanticAnalyzer extends Thread {
 
             if(match(LexemeType.INLINE_COMMENT)){
                 consume(LexemeType.INLINE_COMMENT);
+            } else if (match(LexemeType.BLOCK_COMMENT)) {
+                String errorMessage = "Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
+                        lexemes.get(currentLexemeIndex).getStringType() + " is not allowed as an inline comment";
+
+                throw new SemanticErrorException(errorMessage);
             }
         }
     }
