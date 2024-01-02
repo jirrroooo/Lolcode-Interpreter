@@ -107,6 +107,12 @@ public class SemanticAnalyzer extends Thread {
                     function();
                 } else if (match(LexemeType.FUNCTION_CALL_KEYWORD)) {
                     functionCall();
+                } else if (match(LexemeType.COMMENT_KEYWORD)) {
+                    consume(LexemeType.COMMENT_KEYWORD);
+
+                    if(match(LexemeType.INLINE_COMMENT)){
+                        consume(LexemeType.INLINE_COMMENT);
+                    }
                 } else {
                     String errorMessage = "Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
                             "Unexpected " +
@@ -171,6 +177,12 @@ public class SemanticAnalyzer extends Thread {
             function();
         } else if (match(LexemeType.FUNCTION_CALL_KEYWORD)) {
             functionCall();
+        } else if (match(LexemeType.COMMENT_KEYWORD)) {
+            consume(LexemeType.COMMENT_KEYWORD);
+
+            if(match(LexemeType.INLINE_COMMENT)){
+                consume(LexemeType.INLINE_COMMENT);
+            }
         }
     }
 

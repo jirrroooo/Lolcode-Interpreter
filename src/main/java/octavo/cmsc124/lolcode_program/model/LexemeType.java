@@ -45,6 +45,10 @@ public enum LexemeType {
 
     DATA_TYPE_KEYWORD,
 
+    COMMENT_KEYWORD,
+
+    INLINE_COMMENT,
+
     UNKNOWN,
 
     NULL_VALUE

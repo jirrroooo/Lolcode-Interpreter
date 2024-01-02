@@ -104,7 +104,14 @@ public class LexicalAnalyzer {
         while (matcher.find()) {
             String token = matcher.group();
 
-            if (token.matches(codeDelimiter)) {
+            if(token.matches(inlineComments)){
+                lineTokens.add(new ArrayList<>(List.of("BTW", LexemeType.COMMENT_KEYWORD.toString())));
+                if(token.strip().length() > 3){
+                    lineTokens.add(new ArrayList<>(List.of(token.substring(4), LexemeType.INLINE_COMMENT.toString())));
+                }
+            }
+
+            else if (token.matches(codeDelimiter)) {
                 lineTokens.add(new ArrayList<>(List.of(token, LexemeType.CODE_DELIMITER.toString())));
             }
 
