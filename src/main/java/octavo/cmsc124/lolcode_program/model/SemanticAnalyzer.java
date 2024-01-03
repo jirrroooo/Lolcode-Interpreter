@@ -610,6 +610,7 @@ public class SemanticAnalyzer extends Thread {
 
                 consume(LexemeType.LITERAL);
             } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
+                arithmeticOperation();
                 a = Float.parseFloat(varTable.get("IT").toString());
             } else {
                 if (!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
@@ -736,18 +737,70 @@ public class SemanticAnalyzer extends Thread {
     }
 
     private void comparisonOperation() throws SemanticErrorException {
+        String comparisonFunction = lexemes.get(currentLexemeIndex).getLexeme();
+        float operand1 = 0, operand2 = 0;
+
         consume(LexemeType.COMPARISON_OPERATION);
 
-        consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+        if (match(LexemeType.ARITHMETIC_OPERATION)) {
+            arithmeticOperation();
+            operand1 = Float.parseFloat(varTable.get("IT").toString());
+        } else if (match(LexemeType.VARIABLE_IDENTIFIER)) {
+            operand1 = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
+            consume(LexemeType.VARIABLE_IDENTIFIER);
+        } else if (match(LexemeType.LITERAL)) {
+            if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
+                    Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")){
+                throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
+                        + ": only NUMBR or NUMBAR data type is allowed");
+            }
+
+            operand1 = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
+
+            consume(LexemeType.LITERAL);
+        } else if (match(LexemeType.STRING_DELIMITER)) {
+            throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
+            + ": only NUMBR or NUMBAR data type is allowed");
+        }
+
         consume(LexemeType.OPERAND_SEPARATOR);
 
         if (match(LexemeType.ARITHMETIC_OPERATION)) {
-            consume(LexemeType.ARITHMETIC_OPERATION);
-            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-            consume(LexemeType.OPERAND_SEPARATOR);
-            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-        } else if (!match(LexemeType.ARITHMETIC_OPERATION)) {
-            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            arithmeticOperation();
+            operand2 = Float.parseFloat(varTable.get("IT").toString());
+        } else if (match(LexemeType.VARIABLE_IDENTIFIER)) {
+            operand2 = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
+            consume(LexemeType.VARIABLE_IDENTIFIER);
+        } else if (match(LexemeType.LITERAL)) {
+            if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
+                    Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")){
+                throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
+                        + ": only NUMBR or NUMBAR data type is allowed");
+            }
+
+            operand2 = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
+
+            consume(LexemeType.LITERAL);
+        } else if (match(LexemeType.STRING_DELIMITER)) {
+            throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
+                    + ": only NUMBR or NUMBAR data type is allowed");
+        }
+
+        switch (comparisonFunction){
+            case "BOTH SAEM":
+                if(operand1 == operand2){
+                    varTable.replace("IT", DataType.WIN);
+                }else{
+                    varTable.replace("IT", DataType.FAIL);
+                }
+                break;
+            case "DIFFRINT":
+                if(operand1 != operand2){
+                    varTable.replace("IT", DataType.WIN);
+                }else{
+                    varTable.replace("IT", DataType.FAIL);
+                }
+                break;
         }
     }
 
@@ -1090,16 +1143,6 @@ public class SemanticAnalyzer extends Thread {
         }
         return false;
     }
-
-//    private void handleUnexpectedLexeme() throws SemanticErrorException {
-//        Lexeme currentLexeme = lexemes.get(currentLexemeIndex);
-//        String errorMessage = "Syntax Error at line " + currentLexeme.getLineNumber() + ": " +
-//                "Unexpected " + currentLexeme.getTypeStr();
-//
-//        GuiController.staticOutputPane.appendText(errorMessage + "\n");
-//
-//        throw new SemanticErrorException(errorMessage);
-//    }
 
     private void consume(LexemeType expectedType) throws SemanticErrorException {
         if (match(expectedType)) {
