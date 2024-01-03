@@ -172,6 +172,7 @@ public class SemanticAnalyzer extends Thread {
             inputOperation();
         } else if (match(LexemeType.LITERAL)) {
             int floatCheck = lexemes.get(currentLexemeIndex).getLexeme().indexOf(".");
+
             if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN")){
                 varTable.replace("IT", DataType.WIN);
             } else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")) {
@@ -181,6 +182,7 @@ public class SemanticAnalyzer extends Thread {
             } else {
                 varTable.replace("IT", Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme()));
             }
+
             consume(LexemeType.LITERAL);
         } else if (match(LexemeType.STRING_DELIMITER)) {
             // Checks if string is empty
@@ -590,7 +592,8 @@ public class SemanticAnalyzer extends Thread {
                             varTable.replace(tempVar, DataType.WIN);
                         } else if ((
                                 Objects.equals(varTable.get(tempVar).toString(), "") ||
-                                        Objects.equals(varTable.get(tempVar).toString(), "0")
+                                        Objects.equals(varTable.get(tempVar).toString(), "0") ||
+                                        Objects.equals(varTable.get(tempVar).toString(), "FAIL")
                         )) {
                             varTable.replace("IT", DataType.FAIL);
                         } else {
@@ -863,20 +866,10 @@ public class SemanticAnalyzer extends Thread {
         if (match(LexemeType.ARITHMETIC_OPERATION)) {
             arithmeticOperation();
             operand1 = Float.parseFloat(varTable.get("IT").toString());
-        } else if (match(LexemeType.VARIABLE_IDENTIFIER)) {
-            operand1 = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
-            consume(LexemeType.VARIABLE_IDENTIFIER);
-        } else if (match(LexemeType.LITERAL)) {
-            if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
-                    Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")){
-                throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
-                        + ": only NUMBR or NUMBAR data type is allowed");
-            }
-
-            operand1 = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
-
-            consume(LexemeType.LITERAL);
-        } else if (match(LexemeType.STRING_DELIMITER)) {
+        } else if (match(LexemeType.VARIABLE_IDENTIFIER) || match(LexemeType.LITERAL)) {
+            expression(LexemeType.NULL_VALUE);
+            operand1 = Float.parseFloat(varTable.get("IT").toString());
+        }  else if (match(LexemeType.STRING_DELIMITER)) {
             throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
             + ": only NUMBR or NUMBAR data type is allowed");
         }
@@ -886,19 +879,9 @@ public class SemanticAnalyzer extends Thread {
         if (match(LexemeType.ARITHMETIC_OPERATION)) {
             arithmeticOperation();
             operand2 = Float.parseFloat(varTable.get("IT").toString());
-        } else if (match(LexemeType.VARIABLE_IDENTIFIER)) {
-            operand2 = Float.parseFloat(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
-            consume(LexemeType.VARIABLE_IDENTIFIER);
-        } else if (match(LexemeType.LITERAL)) {
-            if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
-                    Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")){
-                throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
-                        + ": only NUMBR or NUMBAR data type is allowed");
-            }
-
-            operand2 = Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme());
-
-            consume(LexemeType.LITERAL);
+        } else if (match(LexemeType.VARIABLE_IDENTIFIER) || match(LexemeType.LITERAL)) {
+            expression(LexemeType.NULL_VALUE);
+            operand2 = Float.parseFloat(varTable.get("IT").toString());
         } else if (match(LexemeType.STRING_DELIMITER)) {
             throw new SemanticErrorException("Semantic Error at line" + lexemes.get(currentLexemeIndex).getLineNumber()
                     + ": only NUMBR or NUMBAR data type is allowed");

@@ -14,7 +14,6 @@ import octavo.cmsc124.lolcode_program.model.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
@@ -76,8 +75,6 @@ public class GuiController implements Initializable {
         valueColTable.setCellValueFactory(new PropertyValueFactory<Variable, Object>("varValue"));
 
         staticOutputPane = outputPane;
-//        staticVariableObservableList = variableObservableList;
-//        symbolTable.setItems(variableObservableList);
 
         executeBtn.disableProperty().bind(codeEditor.textProperty().isEmpty());
     }
@@ -110,12 +107,8 @@ public class GuiController implements Initializable {
                 lock = true;
         }
 
-//        System.out.println(code);
-
         List<Map.Entry<Integer, String>> codeList = new ArrayList<>(code.entrySet());
         codeList.sort(Map.Entry.comparingByKey());
-
-//        System.out.println(codeList);
 
         boolean hasSyntaxError = false;
 
@@ -145,9 +138,7 @@ public class GuiController implements Initializable {
 //            }
 
             symbolTable.setItems(staticVariableObservableList);
-
         }
-
     }
 
     @FXML
