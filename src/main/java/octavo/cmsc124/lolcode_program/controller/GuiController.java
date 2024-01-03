@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -135,13 +136,16 @@ public class GuiController implements Initializable {
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(lexemes);
             semanticAnalyzer.start();
 
-            try {
-                // Using join to wait for thread1 to finish
-                semanticAnalyzer.join();
-                symbolTable.setItems(staticVariableObservableList);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                // Using join to wait for thread1 to finish
+//                semanticAnalyzer.join();
+//                symbolTable.setItems(staticVariableObservableList);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
+            symbolTable.setItems(staticVariableObservableList);
+
         }
 
     }
@@ -155,12 +159,19 @@ public class GuiController implements Initializable {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("LolCode Files", "*.lol"));
         File file = fileChooser.showOpenDialog(LolCodeMain.stage.getOwner());
 
-        fileName.setText(file.getName());
+        try{
+            fileName.setText(file.getName());
+        }catch (NullPointerException e){
+            outputPane.setText("Cancelled File Selection");
+        }
 
-        if (file != null) {
-            codeEditor.clear();
-            Files.lines(file.toPath(), Charset.forName("UTF-8"))
+        codeEditor.clear();
+
+        try{
+            Files.lines(file.toPath(), StandardCharsets.UTF_8)
                     .forEach(line -> codeEditor.appendText(line.concat("\n")));
+        }catch (NullPointerException e){
+            outputPane.setText("Cancelled File Selection");
         }
     }
 }

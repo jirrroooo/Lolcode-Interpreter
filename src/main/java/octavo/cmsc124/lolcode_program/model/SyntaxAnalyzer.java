@@ -69,6 +69,9 @@ public class SyntaxAnalyzer extends Thread{
                         variableAssignmentAndTypeCasting();
                     } else if(match(LexemeType.TYPECASTING_OPERATOR)){ // REASSIGNMENT: use of R
                         typeCasting();
+                    } else if (match(LexemeType.INPUT_KEYWORD)) { // INPUT: GIMMEH x
+                        consume(LexemeType.INPUT_KEYWORD);
+                        consume(LexemeType.VARIABLE_IDENTIFIER);
                     } else if (match(LexemeType.FLOW_CONTROL_DELIMITER)) {
                         if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "O RLY?")){ // if-else case
                             ifElseControlFlow();
@@ -130,6 +133,9 @@ public class SyntaxAnalyzer extends Thread{
             consumeString();
         } else if(match(LexemeType.VARIABLE_IDENTIFIER)){
             variableAssignmentAndTypeCasting();
+        } else if (match(LexemeType.INPUT_KEYWORD)) { // INPUT: GIMMEH x
+            consume(LexemeType.INPUT_KEYWORD);
+            consume(LexemeType.VARIABLE_IDENTIFIER);
         } else if(match(LexemeType.LOOP_DELIMITER)){
             loop();
         } else if(match(LexemeType.FUNCTION_DELIMITER)){
@@ -390,7 +396,6 @@ public class SyntaxAnalyzer extends Thread{
             throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                     ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")" );
         }
-
     }
 
     private void booleanOperation() throws SyntaxErrorException {
@@ -619,7 +624,9 @@ public class SyntaxAnalyzer extends Thread{
         public SyntaxErrorException(String message) {
             super(message);
             GuiController.staticOutputPane.clear();
+            GuiController.staticOutputPane.setStyle("-fx-text-fill: red;");
             GuiController.staticOutputPane.appendText(message + "\n");
+            GuiController.staticOutputPane.setEditable(false);
         }
     }
 
