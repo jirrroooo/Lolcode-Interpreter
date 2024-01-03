@@ -328,17 +328,13 @@ public class SyntaxAnalyzer extends Thread{
         if(match(LexemeType.ARITHMETIC_OPERATION)){
             arithmeticOperation();
         } else if (match(LexemeType.LITERAL)) {
-            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
-                    Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")){
-                throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
-                        ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")");
-            }
             consume(LexemeType.LITERAL);
         } else if(match(LexemeType.VARIABLE_IDENTIFIER)){
             consume(LexemeType.VARIABLE_IDENTIFIER);
         } else if (match(LexemeType.STRING_DELIMITER)){
-            throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
-                    ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")" );
+            consumeString();
+//            throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+//                    ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")" );
         }
 
         consume(LexemeType.OPERAND_SEPARATOR);
@@ -346,17 +342,13 @@ public class SyntaxAnalyzer extends Thread{
         if(match(LexemeType.ARITHMETIC_OPERATION)){
             arithmeticOperation();
         } else if (match(LexemeType.LITERAL)) {
-            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
-                    Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")){
-                throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
-                        ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")");
-            }
             consume(LexemeType.LITERAL);
         } else if(match(LexemeType.VARIABLE_IDENTIFIER)){
             consume(LexemeType.VARIABLE_IDENTIFIER);
         } else if (match(LexemeType.STRING_DELIMITER)){
-            throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
-                    ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")");
+            consumeString();
+//            throw new SyntaxErrorException("Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+//                    ": only NUMBR or NUMBAR data type is allowed (" + lexemes.get(currentLexemeIndex).getLexeme() + ")");
         }
     }
 
