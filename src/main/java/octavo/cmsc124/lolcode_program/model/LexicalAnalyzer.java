@@ -44,9 +44,9 @@ public class LexicalAnalyzer {
         String numbarLiteral = "(?:\\-)?\\d+\\.\\d+";
         String yarnLiteral = "\\\"([^\"]*)\\\"";
         String troofLiteral = "\\bWIN|FAIL\\b";
-        String literal = "(" + numbarLiteral + "|" + numbrLiteral + "|" + yarnLiteral + "|" + troofLiteral + ")";
+        String literal = "(" + troofLiteral + "|" + numbarLiteral + "|" + numbrLiteral + "|" + yarnLiteral + ")";
         String outputKeyword = "VISIBLE";
-        String dataTypeKeyword = "\\bNOOB|TROOF|NUMBAR|NUMBR|YARN|WIN|FAIL\\b";
+        String dataTypeKeyword = "\\bNOOB|TROOF|NUMBAR|NUMBR|YARN\\b";
 
         String functionDelimiter = "\\bIF U SAY SO\\b";
         String functionIdentifier = "HOW IZ I [a-z|A-Z][a-z|A-Z|0-9|_]*";
@@ -83,7 +83,7 @@ public class LexicalAnalyzer {
         String blockComment = "OBTW[\\s\\S]*?TLDR";
 
         // Combine patterns into a single pattern
-        String combinedPattern = "(" + codeDelimiter + "|" + loopKeyword + "|" + outputKeyword + "|" +  literal
+        String combinedPattern = "(" + codeDelimiter + "|" + loopKeyword + "|" + outputKeyword + "|" + troofLiteral + "|" + literal
                 + "|" + functionIdentifier + "|" + functionParameter + "|" + loopIdentifier + "|" + functionCallKeyword
                 + "|" + functionDelimiter + "|" + variableAssignment + "|" + variableDelimiter + "|" + variableDeclaration
                 + "|" + returnKeyword + "|" + loopCondition
@@ -118,6 +118,10 @@ public class LexicalAnalyzer {
                     lineTokens.add(new ArrayList<>(List.of(token.substring(5, token.length()-4), LexemeType.BLOCK_COMMENT.toString())));
                 }
                 lineTokens.add(new ArrayList<>(List.of("TLDR", LexemeType.COMMENT_KEYWORD.toString())));
+            }
+
+            else if (token.matches(troofLiteral)) {
+                lineTokens.add(new ArrayList<>(List.of(token, LexemeType.LITERAL.toString())));
             }
 
             else if (token.matches(codeDelimiter)) {

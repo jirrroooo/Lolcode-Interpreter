@@ -82,7 +82,7 @@ public class SemanticAnalyzer extends Thread {
                     GuiController.staticOutputPane.appendText(tempOutputString);
                     varTable.replace("IT", tempOutputString);
                 } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
-                    varTable.replace("IT", arithmeticOperation());
+                    arithmeticOperation();
                 } else if (match(LexemeType.BOOLEAN_OPERATION)) {
                     booleanOperation();
                 } else if (match(LexemeType.COMPARISON_OPERATION)) { // BOTH SAEM & DIFFRINT
@@ -138,8 +138,10 @@ public class SemanticAnalyzer extends Thread {
 
         if (match(exclude)) {                     // Exclusion
             System.out.println("Error");
+            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber()
+            + ": " + exclude + " must not be invoked");
         } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
-            varTable.replace("IT", arithmeticOperation());
+            arithmeticOperation();
         } else if (match(LexemeType.BOOLEAN_OPERATION)) {
             booleanOperation();
         } else if (match(LexemeType.COMPARISON_OPERATION)) {
@@ -356,11 +358,17 @@ public class SemanticAnalyzer extends Thread {
                     if (match(LexemeType.LITERAL)) {
                         int floatCheck = lexemes.get(currentLexemeIndex).getLexeme().indexOf(".");
 
-                        if (floatCheck == -1) {
+                        if (floatCheck == -1 && (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN") ||
+                                Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL"))) {
+                            varTable.replace(varName, lexemes.get(currentLexemeIndex).getLexeme());
+                        } else if (floatCheck == -1) {
                             varTable.replace(varName, Integer.parseInt(lexemes.get(currentLexemeIndex).getLexeme()));
                         } else {
                             varTable.replace(varName, Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme()));
                         }
+
+                        consume(LexemeType.LITERAL);
+
                     } else if (match(LexemeType.VARIABLE_IDENTIFIER)) {
                         String tempVar = lexemes.get(currentLexemeIndex).getLexeme();
 
@@ -370,6 +378,9 @@ public class SemanticAnalyzer extends Thread {
                         } else {
                             varTable.replace(varName, varTable.get(tempVar));
                         }
+
+                        consume(LexemeType.VARIABLE_IDENTIFIER);
+
                     } else {
                         // Expression
                         // Call the Expression
@@ -379,7 +390,6 @@ public class SemanticAnalyzer extends Thread {
                         varTable.replace(varName, varTable.get("IT"));
                     }
 
-                    consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
                 }
             }
 
@@ -557,7 +567,7 @@ public class SemanticAnalyzer extends Thread {
         cast(literalOrVar, "", tempDataType, true);
     }
 
-    private float arithmeticOperation() throws SemanticErrorException {
+    private void arithmeticOperation() throws SemanticErrorException {
         float a, b;
 
         String operation = lexemes.get(currentLexemeIndex).getLexeme();
@@ -565,7 +575,8 @@ public class SemanticAnalyzer extends Thread {
         consume(LexemeType.ARITHMETIC_OPERATION);
 
         if (match(LexemeType.ARITHMETIC_OPERATION)) {
-            a = arithmeticOperation();
+            arithmeticOperation();
+            a = Float.parseFloat(varTable.get("IT").toString());
 
             consume(LexemeType.OPERAND_SEPARATOR);
 
@@ -578,7 +589,8 @@ public class SemanticAnalyzer extends Thread {
 
                 consume(LexemeType.LITERAL);
             } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
-                b = arithmeticOperation();
+                arithmeticOperation();
+                b = Float.parseFloat(varTable.get("IT").toString());
             } else {
                 if (!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
                     b = Integer.parseInt(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
@@ -598,7 +610,7 @@ public class SemanticAnalyzer extends Thread {
 
                 consume(LexemeType.LITERAL);
             } else if (match(LexemeType.ARITHMETIC_OPERATION)) {
-                a = arithmeticOperation();
+                a = Float.parseFloat(varTable.get("IT").toString());
             } else {
                 if (!varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString().contains(".")) {
                     a = Integer.parseInt(varTable.get(lexemes.get(currentLexemeIndex).getLexeme()).toString());
@@ -612,7 +624,8 @@ public class SemanticAnalyzer extends Thread {
             consume(LexemeType.OPERAND_SEPARATOR);
 
             if (match(LexemeType.ARITHMETIC_OPERATION)) {
-                b = arithmeticOperation();
+                arithmeticOperation();
+                b = Float.parseFloat(varTable.get("IT").toString());
             } else {
                 if (match(LexemeType.LITERAL)) {
                     if (!lexemes.get(currentLexemeIndex).getLexeme().contains(".")) {
@@ -634,22 +647,72 @@ public class SemanticAnalyzer extends Thread {
             }
         }
 
+        float temp = 0;
+
         switch (operation) {
             case "SUM OF":
-                return Arithmetic.sumOf(a, b);
-            case "DIFF OF":
-                return Arithmetic.diffOf(a, b);
+                temp = Arithmetic.sumOf(a, b);
 
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
+            case "DIFF OF":
+                temp = Arithmetic.diffOf(a, b);
+
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
             case "PRODUKT OF":
-                return Arithmetic.produktOf(a, b);
+                temp = Arithmetic.produktOf(a, b);
+
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
             case "QUOSHUNT OF":
-                return Arithmetic.quoshuntOf(a, b);
+                temp = Arithmetic.quoshuntOf(a, b);
+
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
             case "MOD OF":
-                return Arithmetic.modOf(a, b);
+                temp = Arithmetic.modOf(a, b);
+
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
             case "BIGGR OF":
-                return Arithmetic.biggrOf(a, b);
+                temp = Arithmetic.biggrOf(a, b);
+
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
             case "SMALLR OF":
-                return Arithmetic.smallrOf(a, b);
+                temp = Arithmetic.smallrOf(a, b);
+
+                if(isFloat(temp)){
+                    varTable.replace("IT", temp);
+                }else{
+                    varTable.replace("IT", (int) temp);
+                }
+                break;
         }
 
 
@@ -666,8 +729,10 @@ public class SemanticAnalyzer extends Thread {
 //                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
 //            }
 //        }
+    }
 
-        return 0;
+    private boolean isFloat(float temp){
+        return temp % (int) temp != 0.0;
     }
 
     private void comparisonOperation() throws SemanticErrorException {
