@@ -531,15 +531,15 @@ public class SyntaxAnalyzer extends Thread{
         if(match(LexemeType.STRING_DELIMITER)){
             consumeString();
         }else{
-            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            expression(LexemeType.NULL_VALUE);
         }
 
         while(match(LexemeType.OPERAND_SEPARATOR)){
             consume(LexemeType.OPERAND_SEPARATOR);
             if(match(LexemeType.STRING_DELIMITER)){
                 consumeString();
-            }else{
-                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            } else{
+                expression(LexemeType.NULL_VALUE);
             }
         }
     }

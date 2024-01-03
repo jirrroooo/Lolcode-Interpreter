@@ -14,6 +14,7 @@ public class SemanticAnalyzer extends Thread {
     public ArrayList<Variable> variableList;
     private Map<String, Object> varTable;
     private String tempOutputString = "";
+    private String tempConcatString = "";
     private ArrayList<java.lang.Boolean> troofList = new ArrayList<java.lang.Boolean>();
     private boolean hasInput = false;
 
@@ -94,9 +95,9 @@ public class SemanticAnalyzer extends Thread {
                 } else if (match(LexemeType.COMPARISON_OPERATION)) { // BOTH SAEM & DIFFRINT
                     comparisonOperation();
                 } else if (match(LexemeType.CONCATENATION_KEYWORD)) { // SMOOSH
-                    tempOutputString = "";
+                    tempConcatString = "";
                     concatenationOperation();
-                    varTable.replace("IT", tempOutputString);
+                    varTable.replace("IT", tempConcatString);
                 } else if (match(LexemeType.VARIABLE_IDENTIFIER)) { // REASSIGNMENT: use of R
                     variableAssignmentAndTypeCasting();
                 } else if (match(LexemeType.TYPECASTING_OPERATOR)) { // REASSIGNMENT: use of R
@@ -155,18 +156,27 @@ public class SemanticAnalyzer extends Thread {
             booleanOperation();
         } else if (match(LexemeType.COMPARISON_OPERATION)) {
             comparisonOperation();
-        } else if (match(LexemeType.CONCATENATION_KEYWORD)) {
+        } else if (match(LexemeType.CONCATENATION_KEYWORD)) { // Smoosh
+            tempConcatString = "";
             concatenationOperation();
+            varTable.replace("IT", tempConcatString);
         } else if (match(LexemeType.TYPECASTING_OPERATOR)) {
             typeCasting();
         } else if (match(LexemeType.OUTPUT_KEYWORD)) {
+            tempOutputString = "";
             outputStatement();
+            GuiController.staticOutputPane.appendText(tempOutputString);
+            GuiController.staticOutputPane.setEditable(false);
+            varTable.replace("IT", tempOutputString);
         }  else if (match(LexemeType.INPUT_KEYWORD)) { // INPUT: GIMMEH x
             inputOperation();
         } else if (match(LexemeType.LITERAL)) {
             int floatCheck = lexemes.get(currentLexemeIndex).getLexeme().indexOf(".");
-
-            if (floatCheck == -1) {
+            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN")){
+                varTable.replace("IT", DataType.WIN);
+            } else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")) {
+                varTable.replace("IT", DataType.FAIL);
+            }else if (floatCheck == -1) {
                 varTable.replace("IT", Integer.parseInt(lexemes.get(currentLexemeIndex).getLexeme()));
             } else {
                 varTable.replace("IT", Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme()));
@@ -838,21 +848,6 @@ public class SemanticAnalyzer extends Thread {
                 }
                 break;
         }
-
-
-//        if (match(LexemeType.ARITHMETIC_OPERATION)) {
-//            arithmeticOperation();
-//            consume(LexemeType.OPERAND_SEPARATOR);
-//            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-//        } else {
-//            consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-//            consume(LexemeType.OPERAND_SEPARATOR);
-//            if (match(LexemeType.ARITHMETIC_OPERATION)) {
-//                arithmeticOperation();
-//            } else {
-//                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
-//            }
-//        }
     }
 
     private boolean isFloat(float temp){
@@ -1234,13 +1229,17 @@ public class SemanticAnalyzer extends Thread {
 
         if (match(LexemeType.STRING_DELIMITER)) {
             if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
-                tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+                tempConcatString += lexemes.get(currentLexemeIndex + 1).getLexeme();
             }
 
             consumeString();
         } else {
-            expression(LexemeType.CONCATENATION_KEYWORD);
-            tempOutputString += varTable.get("IT").toString();
+//            if(match(LexemeType.ARITHMETIC_OPERATION)){
+//                arithmeticOperation();
+//            }else{
+                expression(LexemeType.CONCATENATION_KEYWORD);
+                tempConcatString += varTable.get("IT").toString();
+//            }
         }
 
         while (match(LexemeType.OPERAND_SEPARATOR)) {
@@ -1248,13 +1247,17 @@ public class SemanticAnalyzer extends Thread {
 
             if (match(LexemeType.STRING_DELIMITER)) {
                 if (lexemes.get(currentLexemeIndex + 1).getType() != LexemeType.STRING_DELIMITER) {
-                    tempOutputString += lexemes.get(currentLexemeIndex + 1).getLexeme();
+                    tempConcatString += lexemes.get(currentLexemeIndex + 1).getLexeme();
                 }
 
                 consumeString();
             } else {
-                expression(LexemeType.CONCATENATION_KEYWORD);
-                tempOutputString += varTable.get("IT").toString();
+//                if(match(LexemeType.ARITHMETIC_OPERATION)){
+//                    arithmeticOperation();
+//                }else{
+                    expression(LexemeType.CONCATENATION_KEYWORD);
+                    tempConcatString += varTable.get("IT").toString();
+//                }
             }
         }
     }
