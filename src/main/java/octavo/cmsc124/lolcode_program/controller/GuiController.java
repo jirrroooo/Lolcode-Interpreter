@@ -129,14 +129,6 @@ public class GuiController implements Initializable {
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(lexemes);
             semanticAnalyzer.start();
 
-//            try {
-//                // Using join to wait for thread1 to finish
-//                semanticAnalyzer.join();
-//                symbolTable.setItems(staticVariableObservableList);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-
             symbolTable.setItems(staticVariableObservableList);
         }
     }

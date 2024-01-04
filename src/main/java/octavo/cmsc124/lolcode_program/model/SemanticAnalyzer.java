@@ -17,6 +17,7 @@ public class SemanticAnalyzer extends Thread {
     private String tempConcatString = "";
     private ArrayList<java.lang.Boolean> troofList = new ArrayList<java.lang.Boolean>();
     private boolean hasInput = false;
+    private boolean ifElseCondition = false;
 
     public SemanticAnalyzer(List<Lexeme> lexemes) {
         this.lexemes = lexemes;
@@ -201,6 +202,12 @@ public class SemanticAnalyzer extends Thread {
                         + ": " + lexemes.get(currentLexemeIndex).getLexeme() + " is not defined.");
             }
 
+        } else if (match(LexemeType.FLOW_CONTROL_DELIMITER)) {
+            if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "O RLY?")) { // if-else case
+                ifElseControlFlow();
+            } else {                      // switch case
+                switchCaseControlFlow();
+            }
         } else if (match(LexemeType.LOOP_DELIMITER)) {
             loop();
         } else if (match(LexemeType.FUNCTION_DELIMITER)) {
@@ -225,14 +232,103 @@ public class SemanticAnalyzer extends Thread {
     private void ifElseControlFlow() throws SemanticErrorException {
         consume(LexemeType.FLOW_CONTROL_DELIMITER);
 
-        if (match(LexemeType.FLOW_CONTROL_KEYWORD)) {
-            while (match(LexemeType.FLOW_CONTROL_KEYWORD)) {
+        System.out.println("1 ====> IT: " + varTable.get("IT"));
+        System.out.println(Objects.equals(varTable.get("IT").toString(), "WIN"));
+//
+//        // Cast first the value of it to TROOF i.e. WIN or FAIL
+//        cast("IT", "", DataType.TROOF.toString(), true);
+//
+//        System.out.println("2 ====> IT: " + varTable.get("IT"));
+
+        ifElseCondition = Objects.equals(varTable.get("IT").toString(), "WIN");
+
+        System.out.println("====> ifElseCondition: " + ifElseCondition);
+
+        if(ifElseCondition){
+            // YA RLY (required)
+            consume(LexemeType.FLOW_CONTROL_KEYWORD);
+
+            while (!match(LexemeType.FLOW_CONTROL_KEYWORD) || !match(LexemeType.FLOW_CONTROL_DELIMITER)){        // Continue until if-else keyword is encountered
+                expression(LexemeType.NULL_VALUE);
+
+                if(match(LexemeType.FLOW_CONTROL_KEYWORD) || match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                    break;
+                }
+            }
+
+            // Consume remaining codes that is not reached by the if-else condition
+            while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                consume(lexemes.get(currentLexemeIndex).getType());
+            }
+
+        } else if (match(LexemeType.FLOW_CONTROL_KEYWORD)) {
+            // Consume the YA RLY block
+            consume(LexemeType.FLOW_CONTROL_KEYWORD);
+            while(!match(LexemeType.FLOW_CONTROL_KEYWORD)){
+                consume(lexemes.get(currentLexemeIndex).getType());
+            }
+
+            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "MEBBE")){
+                // MEBBE
+                while(match(LexemeType.FLOW_CONTROL_KEYWORD) && Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "MEBBE")){
+                    consume(LexemeType.FLOW_CONTROL_KEYWORD);
+                    expression(LexemeType.NULL_VALUE);
+                    cast(varTable.get("IT").toString(), "", DataType.TROOF.toString(), true);
+                    if(Objects.equals(varTable.get("IT").toString(), "WIN")){
+                        while(!match(LexemeType.FLOW_CONTROL_KEYWORD)){     // Continue until if-else keyword is encountered
+                            expression(LexemeType.NULL_VALUE);
+                        }
+                        while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                            consume(lexemes.get(currentLexemeIndex).getType());
+                        }
+
+                        break;
+                    }else{
+                        while(!match(LexemeType.FLOW_CONTROL_KEYWORD)){
+                            consume(lexemes.get(currentLexemeIndex).getType());
+                        }
+                    }
+                }
+
+                if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NO WAI")){
+                    consume(LexemeType.FLOW_CONTROL_KEYWORD);
+                    System.out.println("NOOOOOO WAIIIII");
+                    while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){  // Continue until if-else delimiter is encountered
+                        expression(LexemeType.NULL_VALUE);
+//                        System.out.print(".");
+//                        System.out.print(lexemes.get(currentLexemeIndex).getLexeme());
+//
+//                        if(match(LexemeType.FLOW_CONTROL_DELIMITER)){
+//                            break;
+//                        }
+                    }
+                }
+
+                // Consume remaining codes that is not reached by the if-else condition
+                while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                    consume(lexemes.get(currentLexemeIndex).getType());
+                }
+            }else if (match(LexemeType.FLOW_CONTROL_KEYWORD) && Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NO WAI")){
                 consume(LexemeType.FLOW_CONTROL_KEYWORD);
 
-                // Handles cases when expression is more than 1
-                while (!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER)) {
-                    expression(LexemeType.NULL_VALUE);
+                if(!ifElseCondition){
+                    while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){  // Continue until if-else delimiter is encountered
+                        expression(LexemeType.NULL_VALUE);
+                    }
                 }
+
+                // Consume remaining codes that is not reached by the if-else condition
+//                while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+//                    consume(lexemes.get(currentLexemeIndex).getType());
+//                }
+            }
+
+
+        } else if (!ifElseCondition) {
+            // If there is no NO WAI
+            // Consume remaining codes that is not reached by the if-else condition
+            while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                expression(LexemeType.NULL_VALUE);
             }
         }
 
@@ -582,6 +678,7 @@ public class SemanticAnalyzer extends Thread {
                 break;
             case "TROOF":
                 try {
+
                     if (varTable.containsKey(tempVar)) {
                         if (!isExplicit && (Objects.equals(varTable.get(tempVar).toString(), "") ||
                                 Objects.equals(varTable.get(tempVar).toString(), "0") ||
@@ -591,12 +688,16 @@ public class SemanticAnalyzer extends Thread {
                         } else if (!isExplicit) {
                             varTable.replace(tempVar, DataType.WIN);
                         } else if ((
+                                // TODO: fix bug in varTable.get(tempVar) == "FAIL"
                                 Objects.equals(varTable.get(tempVar).toString(), "") ||
                                         Objects.equals(varTable.get(tempVar).toString(), "0") ||
                                         Objects.equals(varTable.get(tempVar).toString(), "FAIL")
                         )) {
+                            System.out.println("\n================ NICE TEST ==============");
                             varTable.replace("IT", DataType.FAIL);
                         } else {
+                            System.out.println("\n================ TEST ==============");
+                            System.out.println(varTable.get(tempVar));
                             varTable.replace("IT", DataType.WIN);
                         }
                     } else { // Ensure that error would not occur
@@ -1217,12 +1318,8 @@ public class SemanticAnalyzer extends Thread {
 
             consumeString();
         } else {
-//            if(match(LexemeType.ARITHMETIC_OPERATION)){
-//                arithmeticOperation();
-//            }else{
                 expression(LexemeType.CONCATENATION_KEYWORD);
                 tempConcatString += varTable.get("IT").toString();
-//            }
         }
 
         while (match(LexemeType.OPERAND_SEPARATOR)) {

@@ -159,14 +159,40 @@ public class SyntaxAnalyzer extends Thread{
     private void ifElseControlFlow() throws SyntaxErrorException {
         consume(LexemeType.FLOW_CONTROL_DELIMITER);
 
-        if(match(LexemeType.FLOW_CONTROL_KEYWORD)){
-            while(match(LexemeType.FLOW_CONTROL_KEYWORD)){
-                consume(LexemeType.FLOW_CONTROL_KEYWORD);
 
-                // Handles cases when expression is more than 1
-                while(!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER)){
+        if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "YA RLY")){
+            // YA RLY (required)
+            consume(LexemeType.FLOW_CONTROL_KEYWORD);
+
+            while (!match(LexemeType.FLOW_CONTROL_KEYWORD) || !match(LexemeType.FLOW_CONTROL_DELIMITER)){        // Continue until if-else keyword is encountered
+                expression(LexemeType.NULL_VALUE);
+
+                if(match(LexemeType.FLOW_CONTROL_KEYWORD) || match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                    break;
+                }
+            }
+        }
+
+        if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "MEBBE")) {
+            // MEBBE
+            while(match(LexemeType.FLOW_CONTROL_KEYWORD) && Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "MEBBE")){
+                consume(LexemeType.FLOW_CONTROL_KEYWORD);
+                expression(LexemeType.NULL_VALUE);
+
+
+                while(!match(LexemeType.FLOW_CONTROL_KEYWORD)){     // Continue until if-else keyword is encountered
                     expression(LexemeType.NULL_VALUE);
                 }
+
+            }
+        }
+
+        if (match(LexemeType.FLOW_CONTROL_KEYWORD) && Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "NO WAI")){
+            // NO WAI
+            consume(LexemeType.FLOW_CONTROL_KEYWORD);
+
+            while (!match(LexemeType.FLOW_CONTROL_DELIMITER)){  // Continue until if-else delimiter is encountered
+                expression(LexemeType.NULL_VALUE);
             }
         }
 
