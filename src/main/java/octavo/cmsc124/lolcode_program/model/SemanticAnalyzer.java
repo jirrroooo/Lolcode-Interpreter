@@ -89,7 +89,12 @@ public class SemanticAnalyzer extends Thread {
                     variableDeclaration();
                 } else if (match(LexemeType.OUTPUT_KEYWORD)) { // VISIBLE
                     tempOutputString = "";
-                    outputStatement();
+                    try {
+                        outputStatement();
+                    }catch (IndexOutOfBoundsException e){
+                        throw new SemanticErrorException("Semantic error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                                ": invalid output statement");
+                    }
                     GuiController.staticOutputPane.appendText(tempOutputString);
                     GuiController.staticOutputPane.setEditable(false);
                     varTable.replace("IT", tempOutputString);
@@ -347,7 +352,7 @@ public class SemanticAnalyzer extends Thread {
         } else if (match(LexemeType.FLOW_CONTROL_KEYWORD)) {
             // Consume the YA RLY block
             consume(LexemeType.FLOW_CONTROL_KEYWORD);
-            while(!match(LexemeType.FLOW_CONTROL_KEYWORD)){
+            while(!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER)){
                 consume(lexemes.get(currentLexemeIndex).getType());
             }
 

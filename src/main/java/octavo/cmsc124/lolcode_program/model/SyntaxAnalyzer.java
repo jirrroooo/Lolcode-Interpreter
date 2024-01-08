@@ -539,6 +539,8 @@ public class SyntaxAnalyzer extends Thread{
     private void outputStatement() throws SyntaxErrorException {
         consume(LexemeType.OUTPUT_KEYWORD);
 
+        int referenceLineNumber = lexemes.get(currentLexemeIndex).getLineNumber();
+
         if(match(LexemeType.STRING_DELIMITER)){
             consumeString();
         }else{
@@ -553,6 +555,11 @@ public class SyntaxAnalyzer extends Thread{
             }else{
                 expression(LexemeType.OUTPUT_KEYWORD);
             }
+        }
+
+        if(lexemes.get(currentLexemeIndex).getLineNumber() == referenceLineNumber){
+            throw new SyntaxErrorException("Syntax Error at line " + referenceLineNumber +
+                ": invalid output statement. Check if the keywords and printing separator were properly used");
         }
     }
 
