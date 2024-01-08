@@ -66,6 +66,8 @@ public class GuiController implements Initializable {
 
     private Map<String, Object> variableTable;
 
+    public static boolean hasSyntaxError = false;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         lexemeColTable.setCellValueFactory(new PropertyValueFactory<Lexeme, String>("lexeme"));
@@ -110,20 +112,20 @@ public class GuiController implements Initializable {
         List<Map.Entry<Integer, String>> codeList = new ArrayList<>(code.entrySet());
         codeList.sort(Map.Entry.comparingByKey());
 
-        boolean hasSyntaxError = false;
-
         List<Lexeme> lexemes = new LexicalAnalyzer().analyzeCode(codeList);
         lexemesObservableList.addAll(lexemes);
         lexemeTable.setItems(lexemesObservableList);
 
         SyntaxAnalyzer syntaxAnalyzer = new SyntaxAnalyzer(lexemes);
+
         syntaxAnalyzer.start();
 
         try {
             syntaxAnalyzer.join();
-        } catch (InterruptedException e) {
+        }catch (InterruptedException e){
             hasSyntaxError = true;
         }
+
 
         if(!hasSyntaxError){
             SemanticAnalyzer semanticAnalyzer = new SemanticAnalyzer(lexemes);

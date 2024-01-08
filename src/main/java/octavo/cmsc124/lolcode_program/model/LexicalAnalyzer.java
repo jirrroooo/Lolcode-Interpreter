@@ -75,7 +75,7 @@ public class LexicalAnalyzer {
         String reassignmentKeyword = "\\bR\\b";
 
         String flowControlDelimiter = "\\bO RLY\\?|WTF\\?|OIC\\b";
-        String flowControlKeyword = "\\bYA RLY|NO WAI|OMG|OMGWTF|MEBBE\\b";
+        String flowControlKeyword = "\\bYA RLY|NO WAI|OMGWTF|OMG|MEBBE\\b";
 
         String breakOrExitOperator = "\\bGTFO\\b";
 

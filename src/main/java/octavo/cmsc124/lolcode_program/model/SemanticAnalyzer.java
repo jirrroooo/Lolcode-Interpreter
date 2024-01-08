@@ -11,6 +11,9 @@ public class SemanticAnalyzer extends Thread {
 
     private List<Lexeme> lexemes;
     private int currentLexemeIndex;
+    private Map<String, Map<String, Object>> functionList = new HashMap<>();
+    private int currentFunctionListIndex;
+    private List<Integer> loopCondition;
     public ArrayList<Variable> variableList;
     private Map<String, Object> varTable;
     private String tempOutputString = "";
@@ -22,6 +25,7 @@ public class SemanticAnalyzer extends Thread {
     public SemanticAnalyzer(List<Lexeme> lexemes) {
         this.lexemes = lexemes;
         this.currentLexemeIndex = 0;
+        this.currentFunctionListIndex = 0;
         this.varTable = new HashMap<>() {{
             put("IT", DataType.NOOB);
         }};
@@ -228,6 +232,85 @@ public class SemanticAnalyzer extends Thread {
         }
     }
 
+//    private void loopExpression() throws SemanticErrorException {
+//
+//        if (loopExpressionMatch(LexemeType.ARITHMETIC_OPERATION)) {
+//            arithmeticOperation();
+//        } else if (loopExpressionMatch(LexemeType.BOOLEAN_OPERATION)) {
+//            booleanOperation();
+//        } else if (loopExpressionMatch(LexemeType.COMPARISON_OPERATION)) {
+//            comparisonOperation();
+//        } else if (loopExpressionMatch(LexemeType.CONCATENATION_KEYWORD)) { // Smoosh
+//            tempConcatString = "";
+//            concatenationOperation();
+//            varTable.replace("IT", tempConcatString);
+//        } else if (loopExpressionMatch(LexemeType.TYPECASTING_OPERATOR)) {
+//            typeCasting();
+//        } else if (loopExpressionMatch(LexemeType.OUTPUT_KEYWORD)) {
+//            tempOutputString = "";
+//            outputStatement();
+//            GuiController.staticOutputPane.appendText(tempOutputString);
+//            GuiController.staticOutputPane.setEditable(false);
+//            varTable.replace("IT", tempOutputString);
+//        }  else if (loopExpressionMatch(LexemeType.INPUT_KEYWORD)) { // INPUT: GIMMEH x
+//            inputOperation();
+//        } else if (loopExpressionMatch(LexemeType.LITERAL)) {
+//            int floatCheck = lexemes.get(currentLexemeIndex).getLexeme().indexOf(".");
+//
+//            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WIN")){
+//                varTable.replace("IT", DataType.WIN);
+//            } else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "FAIL")) {
+//                varTable.replace("IT", DataType.FAIL);
+//            }else if (floatCheck == -1) {
+//                varTable.replace("IT", Integer.parseInt(lexemes.get(currentLexemeIndex).getLexeme()));
+//            } else {
+//                varTable.replace("IT", Float.parseFloat(lexemes.get(currentLexemeIndex).getLexeme()));
+//            }
+//
+//            consume(LexemeType.LITERAL);
+//        } else if (loopExpressionMatch(LexemeType.STRING_DELIMITER)) {
+//            // Checks if string is empty
+//            if (lexemes.get(currentLexemeIndex + 1).getType() == LexemeType.STRING_DELIMITER) {
+//                varTable.replace("IT", "");
+//            } else {
+//                varTable.replace("IT", lexemes.get(currentLexemeIndex + 1).getLexeme());
+//            }
+//            consumeString();
+//        } else if (loopExpressionMatch(LexemeType.VARIABLE_IDENTIFIER)) {
+//            if (varTable.containsKey(lexemes.get(currentLexemeIndex).getLexeme())) {
+//                varTable.replace("IT", varTable.get(lexemes.get(currentLexemeIndex).getLexeme()));
+//                variableAssignmentAndTypeCasting();
+//            } else {
+//                throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber()
+//                        + ": " + lexemes.get(currentLexemeIndex).getLexeme() + " is not defined.");
+//            }
+//
+//        } else if (loopExpressionMatch(LexemeType.FLOW_CONTROL_DELIMITER)) {
+//            if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "O RLY?")) { // if-else case
+//                ifElseControlFlow();
+//            } else {                      // switch case
+//                switchCaseControlFlow();
+//            }
+//        } else if (loopExpressionMatch(LexemeType.LOOP_DELIMITER)) {
+//            loop();
+//        } else if (loopExpressionMatch(LexemeType.FUNCTION_DELIMITER)) {
+//            function();
+//        } else if (loopExpressionMatch(LexemeType.FUNCTION_CALL_KEYWORD)) {
+//            functionCall();
+//        } else if (loopExpressionMatch(LexemeType.COMMENT_KEYWORD)) {
+//            consume(LexemeType.COMMENT_KEYWORD);
+//
+//            if(match(LexemeType.INLINE_COMMENT)){
+//                consume(LexemeType.INLINE_COMMENT);
+//            } else if (loopExpressionMatch(LexemeType.BLOCK_COMMENT)) {
+//                String errorMessage = "Syntax Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() + ": " +
+//                        lexemes.get(currentLexemeIndex).getStringType() + " is not allowed as an inline comment";
+//
+//                throw new SemanticErrorException(errorMessage);
+//            }
+//        }
+//    }
+
 
     private void ifElseControlFlow() throws SemanticErrorException {
         consume(LexemeType.FLOW_CONTROL_DELIMITER);
@@ -338,33 +421,87 @@ public class SemanticAnalyzer extends Thread {
     private void switchCaseControlFlow() throws SemanticErrorException {
         consume(LexemeType.FLOW_CONTROL_DELIMITER);
 
-        while (match(LexemeType.FLOW_CONTROL_KEYWORD) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMGWTF")) {
+        while(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMG")){
+
             consume(LexemeType.FLOW_CONTROL_KEYWORD);
 
-            if (match(LexemeType.STRING_DELIMITER)) {
+            boolean isCaseTrue;
+
+            // Case must be literal
+            if(match(LexemeType.STRING_DELIMITER)){
+                isCaseTrue = Objects.equals(varTable.get("IT").toString(), lexemes.get(currentLexemeIndex + 1).getLexeme());
+
                 consumeString();
-            } else {
-                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+            }else{
+                isCaseTrue = Objects.equals(varTable.get("IT").toString(), lexemes.get(currentLexemeIndex).getLexeme());
+
+//                System.out.println("================= Lexeme : " + lexemes.get(currentLexemeIndex).getLexeme());
+//                System.out.println(varTable.get("IT") == lexemes.get(currentLexemeIndex).getLexeme());
+
+                consume(LexemeType.LITERAL);
             }
 
-            // Handles cases when expression is more than 1
-            while (!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER) &&
-                    !match(LexemeType.BREAK_OR_EXIT_OPERATOR)) {
-                expression(LexemeType.NULL_VALUE);
-            }
+//            System.out.println("================= IT : " + varTable.get("IT"));
+//            System.out.println("================= isCaseTrue : " + isCaseTrue);
 
-            // If Break Keyword is Encountered
-            if (match(LexemeType.BREAK_OR_EXIT_OPERATOR)) {
-                consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
+            if (isCaseTrue){
+                // Handles cases when expression is more than 1
+                while(!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER) &&
+                        !match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+                    expression(LexemeType.NULL_VALUE);
+                }
+
+                // If Break Keyword is Encountered
+                if(match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+                    consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
+
+                    // If case is true, and it has a break, consume all codes until the OIC is encountered
+                    while(!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                        consume(lexemes.get(currentLexemeIndex).getType());
+                    }
+                }
+                // If there is no break keyword, all expression below the case are executed until GTFO or OMGWTF or OIC is encountered
+                else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMG") ||
+                        Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMGWTF")) {
+                    while (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMG")){
+                        consume(LexemeType.FLOW_CONTROL_KEYWORD);
+                        consume(LexemeType.LITERAL);
+
+                        while (!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+                            expression(LexemeType.NULL_VALUE);
+                        }
+
+                        if(match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+                            System.out.println("=========> Case True: Next BREAK encountered");
+                            consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
+
+                            break;
+                        }
+                    }
+
+                    // If there are any residual cases, including the default, consume them all
+                    while(!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+                        consume(lexemes.get(currentLexemeIndex).getType());
+                    }
+                }
+//                else if (Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMGWTF")) {
+//                    while(!match(LexemeType.FLOW_CONTROL_DELIMITER)){
+//                        consume(lexemes.get(currentLexemeIndex).getType());
+//                    }
+//                }
+            }else{ // If case is not true, consume the code block and move to next case
+                while(!match(LexemeType.FLOW_CONTROL_KEYWORD)){
+                    consume(lexemes.get(currentLexemeIndex).getType());
+                }
             }
         }
 
         // If a default condition is encountered
-        if (match(LexemeType.FLOW_CONTROL_KEYWORD) && Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMGWTF")) {
+        if(match(LexemeType.FLOW_CONTROL_KEYWORD) && Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMGWTF")){
             consume(LexemeType.FLOW_CONTROL_KEYWORD);
 
             // Handles cases when expression is more than 1
-            while (!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER)) {
+            while(!match(LexemeType.FLOW_CONTROL_KEYWORD) && !match(LexemeType.FLOW_CONTROL_DELIMITER)){
                 expression(LexemeType.NULL_VALUE);
             }
         }
@@ -373,73 +510,339 @@ public class SemanticAnalyzer extends Thread {
     }
 
     private void loop() throws SemanticErrorException {
+        String loopIdentifier, tempVar, varValue;
+        boolean isIncrement, isWile;
+
         consume(LexemeType.LOOP_DELIMITER);
+
+        loopIdentifier = lexemes.get(currentLexemeIndex).getLexeme();
         consume(LexemeType.LOOP_IDENTIFIER);
+
+        isIncrement = Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "UPPIN");
         consume(LexemeType.LOOP_OPERATION);
         consume(LexemeType.LOOP_OR_FUNCTION_KEYWORD);
-        consume(LexemeType.VARIABLE_IDENTIFIER);
+
+        if(varTable.containsKey(lexemes.get(currentLexemeIndex).getLexeme())){
+            tempVar = lexemes.get(currentLexemeIndex).getLexeme();
+            consume(LexemeType.VARIABLE_IDENTIFIER);
+        }else{
+            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber()
+            + ": " + lexemes.get(currentLexemeIndex).getLexeme() + " is undefined");
+        }
+
+        isWile = Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "WILE");
         consume(LexemeType.LOOP_CONDITION);
 
-        while (!match(LexemeType.LOOP_DELIMITER) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)) {
-            // Exclude loop condition - Loop of Loop is not allowed yet
-            expression(LexemeType.LOOP_DELIMITER);
+        Map<String, Integer> loopConditionIndex = getLoopConditionIndex();
+
+        varValue = varTable.get(tempVar).toString();
+
+        if(isWile){
+            wileLoop(isIncrement, tempVar, loopConditionIndex);
+        }else{
+            tilLoop(isIncrement, tempVar, loopConditionIndex);
         }
 
-        if (match(LexemeType.BREAK_OR_EXIT_OPERATOR)) {
-            consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
-        }
+        varTable.replace(tempVar, varValue);
+
+//        // Inside loop expressions
+//        while (!match(LexemeType.LOOP_DELIMITER) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)) {
+//            // Exclude loop condition - Loop of Loop is not allowed yet
+//            expression(LexemeType.LOOP_DELIMITER);
+//        }
+//
+//        if (match(LexemeType.BREAK_OR_EXIT_OPERATOR)) {
+//            consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
+//        }
+
+        System.out.println("Outside loop");
 
         consume(LexemeType.LOOP_DELIMITER);
-        consume(LexemeType.LOOP_IDENTIFIER);
+
+        if(!Objects.equals(loopIdentifier, lexemes.get(currentLexemeIndex).getLexeme())){
+            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                    ": loop identifier (" + loopIdentifier + " and " + lexemes.get(currentLexemeIndex).getLexeme() +
+                    ") not matched");
+        }else{
+            consume(LexemeType.LOOP_IDENTIFIER);
+        }
+    }
+
+    private void wileLoop(boolean isIncrement, String tempVar, Map<String, Integer> loopConditionIndex) throws SemanticErrorException{
+
+        boolean isLoopConditionTrue = Objects.equals(varTable.get("IT").toString(), "WIN");
+
+        while (isLoopConditionTrue){
+            expression(LexemeType.NULL_VALUE);
+
+            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "IM OUTTA YR") || match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+
+                currentLexemeIndex = loopConditionIndex.get("Start");
+                if(isIncrement){
+                    if(varTable.get(tempVar).toString().contains(".")){
+                        varTable.replace(tempVar, Float.parseFloat(varTable.get(tempVar).toString()) + 1);
+                    }else{
+                        varTable.replace(tempVar, (int) Float.parseFloat(varTable.get(tempVar).toString()) + 1);
+                    }
+                }else{
+                    if(varTable.get(tempVar).toString().contains(".")){
+                        varTable.replace(tempVar, Float.parseFloat(varTable.get(tempVar).toString()) - 1);
+                    }else{
+                        varTable.replace(tempVar, (int) Float.parseFloat(varTable.get(tempVar).toString()) - 1);
+                    }
+                }
+
+                expression(LexemeType.NULL_VALUE);
+                isLoopConditionTrue = Objects.equals(varTable.get("IT").toString(), "WIN");
+
+                if(!isLoopConditionTrue){
+                    while(!match(LexemeType.LOOP_DELIMITER)){
+                        consume(lexemes.get(currentLexemeIndex).getType());
+                    }
+
+//                    // If there is a nested loop, consume the loop delimiter and identifier
+//                    if(Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "NERFIN") ||
+//                            Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "UPPIN")){
+//                        consume(LexemeType.LOOP_DELIMITER);
+//
+//                        while(!match(LexemeType.LOOP_DELIMITER)){
+//                            consume(lexemes.get(currentLexemeIndex).getType());
+//                        }
+//                    }
+
+                    break;
+                }
+
+            }
+        }
+
+        if(!match(LexemeType.LOOP_DELIMITER)){
+            while(!match(LexemeType.LOOP_DELIMITER)){
+                consume(lexemes.get(currentLexemeIndex).getType());
+            }
+        }
+
+//        // If there is a nested loop, consume the loop delimiter and identifier
+//        if(Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "NERFIN") ||
+//                Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "UPPIN")){
+//            consume(LexemeType.LOOP_DELIMITER);
+//
+//            while(!match(LexemeType.LOOP_DELIMITER)){
+//                consume(lexemes.get(currentLexemeIndex).getType());
+//            }
+//        }
+    }
+
+    private void tilLoop(boolean isIncrement, String tempVar, Map<String, Integer> loopConditionIndex) throws SemanticErrorException{
+        boolean isLoopConditionTrue = Objects.equals(varTable.get("IT").toString(), "WIN");
+
+        while (!isLoopConditionTrue){
+            expression(LexemeType.NULL_VALUE);
+
+            if(Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "IM OUTTA YR") || match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+
+                currentLexemeIndex = loopConditionIndex.get("Start");
+                if(isIncrement){
+                    if(varTable.get(tempVar).toString().contains(".")){
+                        varTable.replace(tempVar, Float.parseFloat(varTable.get(tempVar).toString()) + 1);
+                    }else{
+                        varTable.replace(tempVar, (int) Float.parseFloat(varTable.get(tempVar).toString()) + 1);
+                    }
+                }else{
+                    if(varTable.get(tempVar).toString().contains(".")){
+                        varTable.replace(tempVar, Float.parseFloat(varTable.get(tempVar).toString()) - 1);
+                    }else{
+                        varTable.replace(tempVar, (int) Float.parseFloat(varTable.get(tempVar).toString()) - 1);
+                    }
+                }
+
+                expression(LexemeType.NULL_VALUE);
+                isLoopConditionTrue = Objects.equals(varTable.get("IT").toString(), "WIN");
+
+                if(isLoopConditionTrue){
+                    while(!match(LexemeType.LOOP_DELIMITER)){
+                        consume(lexemes.get(currentLexemeIndex).getType());
+                    }
+
+//                    // If there is a nested loop, consume the loop delimiter and identifier
+//                    if(Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "NERFIN") ||
+//                            Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "UPPIN")){
+//                        consume(LexemeType.LOOP_DELIMITER);
+//
+//                        while(!match(LexemeType.LOOP_DELIMITER)){
+//                            consume(lexemes.get(currentLexemeIndex).getType());
+//                        }
+//                    }
+
+                    break;
+                }
+
+            }
+        }
+
+        if(!match(LexemeType.LOOP_DELIMITER)){
+            while(!match(LexemeType.LOOP_DELIMITER)){
+                consume(lexemes.get(currentLexemeIndex).getType());
+            }
+        }
+
+//        // If there is a nested loop, consume the loop delimiter and identifier
+//        if(Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "NERFIN") ||
+//                Objects.equals(lexemes.get(currentLexemeIndex + 3).getLexeme(), "UPPIN")){
+//            consume(LexemeType.LOOP_DELIMITER);
+//
+//            while(!match(LexemeType.LOOP_DELIMITER)){
+//                consume(lexemes.get(currentLexemeIndex).getType());
+//            }
+//        }
+    }
+    private Map<String, Integer> getLoopConditionIndex() throws SemanticErrorException{
+        System.out.println("===== This is inside getLoopConditionIndex");
+
+        Map<String, Integer> loopConditionIndex = new HashMap<>();
+
+        int currentLexemeIndex = this.currentLexemeIndex, lexemeIndexAfterExpression;
+
+        expression(LexemeType.NULL_VALUE);
+
+        lexemeIndexAfterExpression = this.currentLexemeIndex;
+
+        loopConditionIndex.put("Start", currentLexemeIndex);
+        loopConditionIndex.put("End", lexemeIndexAfterExpression);
+
+        return loopConditionIndex;
     }
 
     private void function() throws SemanticErrorException {
+
         consume(LexemeType.FUNCTION_DELIMITER);
+
+        String functionIdentifier = lexemes.get(currentLexemeIndex).getLexeme();
+
+        Map<String, Object> tempFunctionDetails = new HashMap<>();
+
+        ArrayList<String> tempVariables = new ArrayList<>();
         consume(LexemeType.FUNCTION_IDENTIFIER);
 
-        while (match(LexemeType.LOOP_OR_FUNCTION_KEYWORD)) {
+        while(match(LexemeType.LOOP_OR_FUNCTION_KEYWORD)){
             consume(LexemeType.LOOP_OR_FUNCTION_KEYWORD);
+
+            tempVariables.add(lexemes.get(currentLexemeIndex).getLexeme());
             consume(LexemeType.VARIABLE_IDENTIFIER);
 
-            if (match(LexemeType.OPERAND_SEPARATOR)) {
+            if(match(LexemeType.OPERAND_SEPARATOR)){
                 consume(LexemeType.OPERAND_SEPARATOR);
             }
         }
 
-        while (!match(LexemeType.FUNCTION_DELIMITER) && !match(LexemeType.RETURN_KEYWORD)) {
-            expression(LexemeType.FUNCTION_DELIMITER);
+        tempFunctionDetails.put("startIndex", currentLexemeIndex);
+
+        while(!match(LexemeType.FUNCTION_DELIMITER) && !match(LexemeType.RETURN_KEYWORD) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+            consume(lexemes.get(currentLexemeIndex).getType());
         }
 
-        if (match(LexemeType.RETURN_KEYWORD)) {
+        if(match(LexemeType.RETURN_KEYWORD)){
             consume(LexemeType.RETURN_KEYWORD);
 
-            // Function inside a Function is not allowed
-            expression(LexemeType.FUNCTION_DELIMITER);
+            while(!match(LexemeType.FUNCTION_DELIMITER)){
+                consume(lexemes.get(currentLexemeIndex).getType());
+            }
         }
 
+        if(match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+            consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
+        }
+
+        tempFunctionDetails.put("endIndex", currentLexemeIndex);
+        tempFunctionDetails.put("variables", tempVariables);
+
         consume(LexemeType.FUNCTION_DELIMITER);
+
+        functionList.put(functionIdentifier, tempFunctionDetails);
     }
 
     private void functionCall() throws SemanticErrorException {
         consume(LexemeType.FUNCTION_CALL_KEYWORD);
+
+        String identifier = lexemes.get(currentLexemeIndex).getLexeme();
+        ArrayList<String> parameters = new ArrayList<>();
+        int functionCallIndex;
+        Map<String, Object> varTableCopy = new HashMap<>();
+
+        Map<String, Object> tempFunctionVarTable = new HashMap<>();
+
+        // Check if identifier is valid
+        if(!functionList.containsKey(identifier)){
+            throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                    ": there is no function identifier named " + identifier);
+        }
+
+
         consume(LexemeType.FUNCTION_IDENTIFIER);
 
-        while (match(LexemeType.LOOP_OR_FUNCTION_KEYWORD)) {
+        while(match(LexemeType.LOOP_OR_FUNCTION_KEYWORD)){
             consume(LexemeType.LOOP_OR_FUNCTION_KEYWORD);
 
-            if (match(LexemeType.STRING_DELIMITER)) {
-                consumeString();
-            } else {
-                consume(LexemeType.VARIABLE_IDENTIFIER, LexemeType.LITERAL);
+            try{
+                expression(LexemeType.NULL_VALUE);
+            }catch (NullPointerException e){
+                throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
+                        ": invalid expression");
             }
+            parameters.add(varTable.get("IT").toString());
 
-
-            if (match(LexemeType.OPERAND_SEPARATOR)) {
+            if(match(LexemeType.OPERAND_SEPARATOR)){
                 consume(LexemeType.OPERAND_SEPARATOR);
             }
         }
 
         consume(LexemeType.CONDITION_DELIMITER);
+
+        // Function is start here
+
+
+        // Copy the contents of varTable and clear it
+        varTableCopy.putAll(varTable);
+        varTable.clear();
+        varTable.put("IT", DataType.NOOB);
+
+//        System.out.println("+++====>>>> variables in funcList: " + functionList.get(identifier).get("variables").getClass());
+//        functionList.get(identifier).get("variables");
+
+        ArrayList<String> tempVariables = (ArrayList<String>) functionList.get(identifier).get("variables");
+
+        for(int i = 0; i < tempVariables.size(); i++){
+            varTable.put(tempVariables.get(i), parameters.get(i));
+        }
+
+        functionCallIndex = currentLexemeIndex;
+
+        currentLexemeIndex = Integer.parseInt(functionList.get(identifier).get("startIndex").toString());
+
+        System.out.println("Nowwwww Here: " + lexemes.get(currentLexemeIndex).getLexeme());
+
+        while(!match(LexemeType.FUNCTION_DELIMITER) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR) && !match(LexemeType.RETURN_KEYWORD)){
+            System.out.println("TRYYYY");
+            expression(LexemeType.FUNCTION_DELIMITER);
+        }
+
+        if(match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+            varTable.replace("IT", DataType.NOOB);
+            consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
+        }
+
+        if(match(LexemeType.RETURN_KEYWORD)){
+            consume(LexemeType.RETURN_KEYWORD);
+
+            expression(LexemeType.FUNCTION_DELIMITER);
+        }
+
+        String itValue = varTable.get("IT").toString();
+        varTable.clear();
+        varTable.putAll(varTableCopy);
+        varTable.replace("IT", itValue);
+
+        currentLexemeIndex = functionCallIndex;
     }
 
     private void inputOperation() throws SemanticErrorException {
@@ -571,6 +974,8 @@ public class SemanticAnalyzer extends Thread {
         if (!varTable.containsKey(tempVar)) {
             throw new SemanticErrorException("Semantic Error at line " + lexemes.get(currentLexemeIndex).getLineNumber() +
                     " : " + tempVar + " is not defined");
+        }else{
+            varTable.replace("IT", varTable.get(tempVar));
         }
 
         if (match(LexemeType.REASSIGNMENT_OPERATOR)) {
@@ -1350,6 +1755,14 @@ public class SemanticAnalyzer extends Thread {
         return false;
     }
 
+//    private boolean loopExpressionMatch(LexemeType expectedType) {
+//        if (currentLoopIndex < loopCondition.size()) {
+//            Lexeme currentLexeme = loopCondition.get(currentLexemeIndex);
+//            return currentLexeme.getType() == expectedType;
+//        }
+//        return false;
+//    }
+
     private void consume(LexemeType expectedType) throws SemanticErrorException {
         if (match(expectedType)) {
             System.out.println("Match " + expectedType + " (expected) and " + lexemes.get(currentLexemeIndex).getType().toString()
@@ -1395,6 +1808,28 @@ public class SemanticAnalyzer extends Thread {
             throw new SemanticErrorException(errorMessage);
         }
     }
+
+//    private void loopConsume(LexemeType expectedType) throws SemanticErrorException {
+//        if (loopExpressionMatch(expectedType)) {
+//            System.out.println("Match " + expectedType + " (expected) and " + loopCondition.get(currentLoopIndex).getType().toString()
+//                    + " Lexeme: " + loopCondition.get(currentLoopIndex).getLexeme() + " line number: " + loopCondition.get(currentLoopIndex).getLineNumber());
+//            currentLoopIndex++;
+//        } else {
+//            // Handle syntax error
+//            System.out.println("Syntax error: Expected " + expectedType + ", but found " +
+//                    (currentLoopIndex < loopCondition.size() ? loopCondition.get(currentLoopIndex).getType().toString()
+//                            + " Lexeme test: " + loopCondition.get(currentLoopIndex).getLexeme()
+//                            + " line number: " + loopCondition.get(currentLoopIndex).getLineNumber() : "end of input"));
+//
+//            String errorMessage = "Syntax Error in Line " + loopCondition.get(currentLoopIndex).getLineNumber() + ": " +
+//                    "Expected " + expectedType.toString().toLowerCase().replace("_", " ") + ", but found " +
+//                    (currentLoopIndex < loopCondition.size() ? loopCondition.get(currentLoopIndex).getStringType() : "end of input") + ".";
+//
+////            GuiController.staticOutputPane.appendText(errorMessage + "\n");
+//
+//            throw new SemanticErrorException(errorMessage);
+//        }
+//    }
 
     private static class SemanticErrorException extends Exception {
         public SemanticErrorException(String message) {

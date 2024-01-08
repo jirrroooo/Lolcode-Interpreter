@@ -25,9 +25,11 @@ public class SyntaxAnalyzer extends Thread{
     public void run(){
         try {
             program();
+            GuiController.hasSyntaxError = false;
         } catch (SyntaxErrorException e) {
             // Handle the exception (terminate the thread, log the error, etc.)
             System.out.println("Thread terminated due to syntax error: " + e.getMessage());
+            GuiController.hasSyntaxError = true;
         }
     }
 
@@ -205,10 +207,11 @@ public class SyntaxAnalyzer extends Thread{
         while(match(LexemeType.FLOW_CONTROL_KEYWORD) && !Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "OMGWTF")){
             consume(LexemeType.FLOW_CONTROL_KEYWORD);
 
+            // Case must be literal
             if(match(LexemeType.STRING_DELIMITER)){
                 consumeString();
             }else{
-                consume(LexemeType.LITERAL, LexemeType.VARIABLE_IDENTIFIER);
+                consume(LexemeType.LITERAL);
             }
 
             // Handles cases when expression is more than 1
@@ -244,9 +247,8 @@ public class SyntaxAnalyzer extends Thread{
         consume(LexemeType.VARIABLE_IDENTIFIER);
         consume(LexemeType.LOOP_CONDITION);
 
-        while(!match(LexemeType.LOOP_DELIMITER) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
-            // Exclude loop condition - Loop of Loop is not allowed yet
-            expression(LexemeType.LOOP_DELIMITER);
+        while(!Objects.equals(lexemes.get(currentLexemeIndex).getLexeme(), "IM OUTTA YR") && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+            expression(LexemeType.NULL_VALUE);
         }
 
         if(match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
@@ -259,7 +261,15 @@ public class SyntaxAnalyzer extends Thread{
 
     private void function() throws SyntaxErrorException {
         consume(LexemeType.FUNCTION_DELIMITER);
+
+        int referenceLineNumber = lexemes.get(currentLexemeIndex).getLineNumber();
+
         consume(LexemeType.FUNCTION_IDENTIFIER);
+
+        if(match(LexemeType.VARIABLE_IDENTIFIER) && lexemes.get(currentLexemeIndex).getLineNumber() == referenceLineNumber){
+            throw new SyntaxErrorException("Syntax error at line " + referenceLineNumber + ": " +
+                    lexemes.get(currentLexemeIndex).getLexeme() + " is unexpected");
+        }
 
         while(match(LexemeType.LOOP_OR_FUNCTION_KEYWORD)){
             consume(LexemeType.LOOP_OR_FUNCTION_KEYWORD);
@@ -268,9 +278,14 @@ public class SyntaxAnalyzer extends Thread{
             if(match(LexemeType.OPERAND_SEPARATOR)){
                 consume(LexemeType.OPERAND_SEPARATOR);
             }
+
+            if(match(LexemeType.VARIABLE_IDENTIFIER) && lexemes.get(currentLexemeIndex).getLineNumber() == referenceLineNumber){
+                throw new SyntaxErrorException("Syntax error at line " + referenceLineNumber + ": " +
+                        lexemes.get(currentLexemeIndex).getLexeme() + " is unexpected");
+            }
         }
 
-        while(!match(LexemeType.FUNCTION_DELIMITER) && ! match(LexemeType.RETURN_KEYWORD)){
+        while(!match(LexemeType.FUNCTION_DELIMITER) && !match(LexemeType.RETURN_KEYWORD) && !match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
             expression(LexemeType.FUNCTION_DELIMITER);
         }
 
@@ -279,6 +294,10 @@ public class SyntaxAnalyzer extends Thread{
 
             // Function inside a Function is not allowed
             expression(LexemeType.FUNCTION_DELIMITER);
+        }
+
+        if(match(LexemeType.BREAK_OR_EXIT_OPERATOR)){
+            consume(LexemeType.BREAK_OR_EXIT_OPERATOR);
         }
 
         consume(LexemeType.FUNCTION_DELIMITER);
@@ -291,11 +310,7 @@ public class SyntaxAnalyzer extends Thread{
         while(match(LexemeType.LOOP_OR_FUNCTION_KEYWORD)){
             consume(LexemeType.LOOP_OR_FUNCTION_KEYWORD);
 
-            if(match(LexemeType.STRING_DELIMITER)){
-                consumeString();
-            } else {
-                consume(LexemeType.VARIABLE_IDENTIFIER, LexemeType.LITERAL);
-            }
+            expression(LexemeType.NULL_VALUE);
 
 
             if(match(LexemeType.OPERAND_SEPARATOR)){
