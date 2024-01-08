@@ -19,14 +19,13 @@
             <menus>
                 <Menu mnemonicParsing="false" text="File">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="New" />
-                        <MenuItem fx:id="exit" mnemonicParsing="false" onAction="#exitProgram" text="Open" />
-                        <MenuItem fx:id="exit1" mnemonicParsing="false" onAction="#exitProgram" text="Save" />
-                        <MenuItem fx:id="exit11" mnemonicParsing="false" onAction="#exitProgram" text="Save As" />
-                        <MenuItem fx:id="exit12" mnemonicParsing="false" onAction="#exitProgram" text="Exit" />
+                        <MenuItem fx:id="newBtn" mnemonicParsing="false" onAction="#newFile" text="New" />
+                        <MenuItem fx:id="openBtn" mnemonicParsing="false" onAction="#onFindFile" text="Open" />
+                        <MenuItem fx:id="saveBtn" mnemonicParsing="false" onAction="#saveFile" text="Save" />
+                        <MenuItem fx:id="saveAsBtn" mnemonicParsing="false" onAction="#saveFile" text="Save As" />
+                        <MenuItem fx:id="exitBtn" mnemonicParsing="false" onAction="#exitProgram" text="Exit" />
                     </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="About" />
             </menus>
         </MenuBar>
         <SplitPane dividerPositions="0.6294" layoutY="26.0" orientation="VERTICAL" prefHeight="559.0" prefWidth="809.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">

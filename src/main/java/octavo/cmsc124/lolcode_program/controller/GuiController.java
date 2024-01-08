@@ -12,6 +12,7 @@ import octavo.cmsc124.lolcode_program.LolCodeMain;
 import octavo.cmsc124.lolcode_program.model.*;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -158,5 +159,38 @@ public class GuiController implements Initializable {
         }catch (NullPointerException e){
             outputPane.setText("Cancelled File Selection");
         }
+    }
+
+    @FXML
+    void newFile() {
+        fileName.setText("*new_code_1.lol");
+
+        codeEditor.clear();
+    }
+
+    @FXML
+    void saveFile(){
+        // Create a FileChooser
+        FileChooser fileChooser = new FileChooser();
+
+        String userHome = System.getProperty("user.home");
+        fileChooser.setInitialDirectory(new File(userHome));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("LolCode Files", "*.lol"));
+        // Show save dialog
+        File file = fileChooser.showSaveDialog(LolCodeMain.stage);
+
+        try {
+            try (FileWriter writer = new FileWriter(file)) {
+                // Write content to the file
+                writer.write(codeEditor.getText());
+                System.out.println("File saved successfully: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.err.println("Error saving file: " + e.getMessage());
+            }
+        }catch (NullPointerException e){
+            outputPane.setText("Saving File Cancelled");
+        }
+
     }
 }
